@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target":"es5",
+        "module":"amd",
+        "outFile":"./public/js/bundle.ts.js",
+        "outDir":"./public/js/",
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "strictNullChecks": false,
+        "sourceMap": true,
+        "watch": true,
+        "allowJs": true
+    },
+    "include": [
+        "./public/ts/"
+    ]
+}
