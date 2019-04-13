@@ -8,7 +8,9 @@ use Exception;
 /**
  * Базовый класс для всех исключений в системе.
  */
-class SystemException extends Exception 
+class      SystemException
+extends    Exception
+implements ILookException
 {
     use SystemExceptionTrait;
     

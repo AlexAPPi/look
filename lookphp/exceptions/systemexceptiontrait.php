@@ -5,6 +5,9 @@ namespace LookPhp\Exceptions;
 use Exception;
 use Throwable;
 
+/**
+ * Базовый 
+ */
 trait SystemExceptionTrait
 {    
     /**
@@ -84,7 +87,7 @@ trait SystemExceptionTrait
     }
     
     /**
-     * Скрывает полные пути
+     * Обрезает абсолютные пути на относительные
      * @param string $str Строка
      * @return string
      */

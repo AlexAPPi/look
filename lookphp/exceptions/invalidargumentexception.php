@@ -8,7 +8,9 @@ use InvalidArgumentException as PHPInvalidArgumentException;
 /**
  * Исключение связанное с неправильной передачей аргумента
  */
-class InvalidArgumentException extends PHPInvalidArgumentException
+class      InvalidArgumentException
+extends    PHPInvalidArgumentException
+implements ILookException
 {
     use SystemExceptionTrait;
     

@@ -4,12 +4,15 @@ namespace LookPhp\Exceptions;
 
 use Throwable;
 use LogicException;
+use LookPhp\Exceptions\ILookException;
 
 /**
  * Базовый класс для всех исключений в системе.
  */
-class SystemLoginException extends LogicException 
-{    
+class      SystemLoginException
+extends    LogicException
+implements ILookException
+{
     use SystemExceptionTrait;
     
     /**
