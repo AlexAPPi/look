@@ -12,7 +12,7 @@ export const apiAuthMethod = 'getTunnelToken';
 /**
  * Объект сессии
  */
-export default class Session
+export class Session
 {
     /** Токен сессии */
     public    token : Token = null;
@@ -146,3 +146,5 @@ export default class Session
         ));
     }
 }
+
+export default Session;

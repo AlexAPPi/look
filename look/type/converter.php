@@ -93,6 +93,9 @@ class Converter
     /** Не определенный тип данных */
     const TMixed = 'mixed';
     
+    /** Enum тип */
+    const TEnum = 'enum';
+    
     /** @var array Преобразование bool */
     private static $boolVals = [
         'y'     => true,
@@ -137,6 +140,9 @@ class Converter
     
     /** @var array Стандартные типы и подмена */
     public static $standartSpecTypes = [
+        
+        // Enum
+        self::TEnum => \Look\Type\Enum::class,
         
         // Array
         self::TIntegerArray => \Look\Type\IntegerArray::class,

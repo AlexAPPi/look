@@ -11,6 +11,9 @@ use Exception;
  */
 class AutoLoadManager
 {
+    /** Название метода, который вызывается при загрузке класса */
+    const onAutoloadMethod = '__onAutoload';
+    
     /** @var array Доступные подгонки типа */
     private static $convert = ['.' => 'dot', '-' => 'slash'];
     
@@ -79,6 +82,11 @@ class AutoLoadManager
         catch (Exception $ex) {
             err_log($ex);
             throw $ex;
+        }
+        
+        // Вызываем функцию, которая нужна для автозагрузчика
+        if(method_exists($globalName, static::onAutoloadMethod)) {
+            call_user_func([$globalName, static::onAutoloadMethod]);
         }
         
         return $fullPath;

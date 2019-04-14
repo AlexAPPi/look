@@ -11,10 +11,6 @@ define('API_REQUEST_START', microtime(true));
 /** @var bool Возможность отправлять callback функцию при ответе на запрос (JSONP) */
 define('API_USE_JSONP_CALLBACK', true);
 
-defined('LOG_DIR') ||
-/** @var string Папка с логами */
-define('LOG_DIR', __DIR__ . '/../log');
-
 /** @var array Параметры запроса */
 $_API_REQUEST = $_REQUEST;
 
@@ -106,17 +102,21 @@ function api_err_log(Throwable $ex) : int
             $dump .= str_replace("\n", PHP_EOL, $ex->getTraceAsString()) . PHP_EOL;
         }
         
-        $date     = date('Y_m_d_H_i', $time);
-        $fileName = LOG_DIR . "/api_error_$date.txt";
-        $errorStr = sprintf('%s => %s[Error#%s]: %s in %s on line %s%s[URL]: %s%s%s',
-            date('d.m.Y H:i:s'), PHP_EOL, $ex->getCode(),
-            $ex->getMessage(), $ex->getFile(), $ex->getLine(),
-            $dump, $_SERVER['REQUEST_URI'], PHP_EOL, PHP_EOL
-        );
-
-        file_put_contents($fileName, $errorStr, FILE_APPEND | LOCK_EX);
+        if(defined('LOG_DIR')) {
         
-    } catch(Throwable $ex) { echo 'error in api:' . __LINE__; }
+            $date     = date('Y_m_d_H_i', $time);
+            $fileName = LOG_DIR . "/api_error_$date.txt";
+            $errorStr = sprintf('%s => %s[Error#%s]: %s in %s on line %s%s[URL]: %s%s%s',
+                date('d.m.Y H:i:s'), PHP_EOL, $ex->getCode(),
+                $ex->getMessage(), $ex->getFile(), $ex->getLine(),
+                $dump, $_SERVER['REQUEST_URI'], PHP_EOL, PHP_EOL
+            );
+
+            file_put_contents($fileName, $errorStr, FILE_APPEND | LOCK_EX);
+        }
+        else { echo 'autoload file error'; }
+        
+    } catch(Throwable $ex) { echo 'error in api'; }
 
     return $time;
 }

@@ -44,21 +44,7 @@ final class AutoArgumentException
      * @param string     $type     -> Тип аргумента
      * @param string     $code     -> Код исключения
      * @param \Throwable $previous -> Предыдущие исключения
-     * @return \Look\Type\Exceptions\UnsignedIntegerException|
-     *         \Look\Type\Exceptions\UnsignedNumericException|
-     *         \Look\Type\Exceptions\ParametrException|
-     *         \Look\Type\Exceptions\ObjectException|
-     *         \Look\Type\Exceptions\ArrayException|
-     *         \Look\Type\Exceptions\CallableException|
-     *         \Look\Type\Exceptions\IntegerException|
-     *         \Look\Type\Exceptions\DoubleException|
-     *         \Look\Type\Exceptions\StringException|
-     *         \Look\Type\Exceptions\NumericException|
-     *         \Look\Type\Exceptions\UnsignedNumericArrayException|
-     *         \Look\Type\Exceptions\UnsignedDoubleArrayException|
-     *         \Look\Type\Exceptions\UnsignedIntegerArrayException|
-     *         \Look\Type\Exceptions\BooleanException|
-     *         \Look\Type\Exceptions\UnsignedDoubleException
+     * @return InvalidArgumentException
      */
     public static function of(string $name, string $type, int $code = 0, Throwable $previous = null) : Throwable
     {
@@ -98,6 +84,8 @@ final class AutoArgumentException
             case Converter::TUnsignedNumericArray: return new UnsignedNumericArrayException($name, $code, $previous);
             case Converter::TUnsignedDoubleArray:  return new UnsignedDoubleArrayException($name, $code, $previous);
             case Converter::TUnsignedIntegerArray: return new UnsignedIntegerArrayException($name, $code, $previous);
+            
+            case Converter::TEnum: return new EnumException($name, $code, $previous);
             
             default: break;
         }

@@ -15,7 +15,7 @@ export default class ErrorQueryObject extends ErrorObject
      * @param msg    Сообщение
      * @param params Параметры запроса
      */
-    constructor(code : number, msg : string, params : any)
+    constructor(code : number, msg : string, params ?: any)
     {
         super(code, msg);
 

@@ -7,21 +7,59 @@ import Token from './Token';
 
 export { RequestMethod, ErrorRequestObject }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @see PHP API Controller file
  */
 
 /** Название аргумента, по каторому передается токен */
-export const accessTokenArgName    = 'access_token';
+export const accessTokenArgName    = 'accessToken';
 
 /** Название заголовка, через который передается токен */
 export const accessTokenHeaderName = 'X-Look-Access-Token';
     
 /** Название аргумента по которому передается зашифрованное сообщение */
-export const protectedDataArgName = 'protected_data';
+export const protectedDataArgName = 'protectedData';
 
 /** Название заголока, через который передается зашифрованное сообщение */
 export const protectedDataHeaderName = 'X-Look-Protected-Data';
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Содержит список ошибок
+ */
+export enum ErrorRequestCode
+{
+    /** Неизвестная ошибка */
+    Unknow = 800000,
+    
+    /** Не удалось инициализировать XHR */
+    XHRFail = 800001,
+    
+    /** Превышен лимит ожидания */
+    Timeout = 800002,
+
+    /** Запрос был прерван */
+    Abort   = 800003,
+
+    /** Ответ пришел не в json формате */
+    NotJson = 800004,
+    
+    /** Токен не поддерживает технологию тунеля */
+    TokenNotTunnel = 800005,
+    
+    /** Не удалось зашифровать данные */
+    ProtectedDataFail = 800005,
+    
+    /** Метод или функция укзаны с ошибкой */
+    MethodOrFunctionFail = 800006
+}
 
 /**
  * Объект запроса
@@ -49,6 +87,50 @@ export class RequestData extends QueryData
 export const NameChecker = /^[a-z]+$/i;
 
 /**
+ * Значение аргумента
+ */
+export class RequestAnsParam
+{
+    /**
+     * @param key   -> Ключ
+     * @param value -> Значение
+     */
+    constructor(readonly key : string, readonly value : any) {}
+}
+
+/**
+ * Список передаваемых аргументов
+ */
+export class RequestAnsParamList extends Array<RequestAnsParam> {}
+
+/**
+ * Объект ошибки
+ */
+export interface RequestAnsError
+{
+    /** Код ошибки */
+    error_code ?: number,
+    
+    /** Описание ошибки */
+    error_msg  ?: string,
+    
+    /** Параметры запроса */
+    request_params ?: Array<RequestAnsParam>
+}
+
+/**
+ * Объект ответа
+ */
+export interface RequestAns
+{
+    /** Возвращается при успешном запросе */
+    response ?: any,
+    
+    /** Возвращается при возникновении некой ошибки */
+    error ?: RequestAnsError
+}
+
+/**
  * Класс запроса к API
  */
 export class Request extends Query
@@ -63,26 +145,50 @@ export class Request extends Query
         super(queryData, delay, timeout);
     }
     
+    /**
+     * Преобразует список параметров в объект ответа
+     * @param params Список параметров
+     */
+    protected convertParamsToAns(params : any[]) : RequestAnsParamList
+    {
+        var list : RequestAnsParamList = new RequestAnsParamList(), i : any;
+        for(i in params) {
+            if (params.hasOwnProperty(i)) {
+                var item = new RequestAnsParam(i, params[i]);
+                list.push(item);
+            }
+        }
+        return list;
+    }
+    
     /** @inheritdoc */
     protected initXHR() : XMLHttpRequest
     {
-        var self    : this           = this,
-            headers : any[any]       = {},
-            xhr     : XMLHttpRequest = getXhr();
+        var self      : this           = this,
+            headers   : any[any]       = {},
+            xhr       : XMLHttpRequest = getXhr(),
+            queryData : RequestData    = self.queryData,
+            params    : any            = queryData.getData();
         
         if(!xhr) {
-            throw new Error('не удалось инициализировать XHR');
+            throw new ErrorRequestObject(
+                ErrorRequestCode.XHRFail,
+                'Failed to initialize xhr',
+                params
+            );
         }
-        
-        var queryData : RequestData = self.queryData;
-        var params    : any         = queryData.getData();
-                
+                        
         // Запрос с использованием технологии тунеля
         if(queryData.tunnel) {
             
             // Не поддерживает отправку зашифрованный данных
-            if(!queryData.token || !queryData.token.supportSendProtectedData()) {
-                throw new Error('Session token can\'t send protected data');
+            if(!queryData.token
+            || !queryData.token.supportSendProtectedData()) {
+                throw new ErrorRequestObject(
+                    ErrorRequestCode.TokenNotTunnel,
+                    'Token does not support tunnel technology',
+                    params
+                );
             }
             
             // Получаем токен из данных запроса и удаляем его
@@ -94,14 +200,18 @@ export class Request extends Query
             } else {
                 headers[accessTokenHeaderName] = queryData.token.accessToken;
             }
-
+            
             // Данные конвертируем в json и шифруем
             var encryptData   : string = JSON.stringify(queryData.getData());
             var protectedData : any    = queryData.token.publicKey.encrypt(encryptData);
-
+            
             // Не удалось зашифровать данные
             if(protectedData == null) {
-                throw new Error('Can\'t encrypt data');
+                throw new ErrorRequestObject(
+                    ErrorRequestCode.TokenNotTunnel,
+                    'Could not encrypt data',
+                    params
+                );
             }
 
             // Шифруем данные и помещаем в заголовок запроса
@@ -142,7 +252,10 @@ export class Request extends Query
         /////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////
-
+        
+        // Для избежания дублей при вызове
+        // из событий onreadystatechange и self.onAbort
+        // вводим 2 переменные, которые хранят флаг вызова
         var callFromChange  = false;
         var abortFromWaiter = false;
 
@@ -160,14 +273,26 @@ export class Request extends Query
                 }
                 else {
                     callFromChange = true;
-                    self.callbackError(new ErrorRequestObject(xhr.status, xhr.responseText, params));
+                    self.callbackError(
+                        new ErrorRequestObject(
+                            xhr.status,
+                            xhr.responseText,
+                            params
+                        )
+                    );
                 }
             }
         };
         
         xhr.onerror = function() {
             if(!callFromChange) {
-                self.callbackError(new ErrorRequestObject(xhr.status, xhr.responseText, params));
+                self.callbackError(
+                    new ErrorRequestObject(
+                        xhr.status,
+                        xhr.responseText,
+                        params
+                    )
+                );
             }
         };
         
@@ -175,11 +300,17 @@ export class Request extends Query
             abortFromWaiter = true;
             xhr.abort();
         });
-
+        
         xhr.onabort = function() {
             if(abortFromWaiter) {
                 if(self.calledErrorIfNotSuccess()) {
-                    self.callbackError(new ErrorRequestObject(-300, 'query abort', params));
+                    self.callbackError(
+                        new ErrorRequestObject(
+                            ErrorRequestCode.Abort,
+                            'Abort',
+                            params
+                        )
+                    );
                 }
                 else {
                     self.callbackAbort();
@@ -189,7 +320,11 @@ export class Request extends Query
 
         xhr.ontimeout = function() {
             
-            var error = new ErrorRequestObject(-300, 'query timeout', params);
+            var error = new ErrorRequestObject(
+                ErrorRequestCode.Timeout,
+                'Timeout',
+                params
+            );
 
             if(self.calledErrorIfNotSuccess()) self.callbackError(error);
             else                               self.callbackTimeout(error);
@@ -213,24 +348,30 @@ export class Request extends Query
     /** @inheritdoc */
     protected responceHandler(xhr : XMLHttpRequest, data ?: any)
     {
-        var ans : any[any], error : ErrorRequestObject;
+        var ans : RequestAns, error : ErrorRequestObject;
 
         // Парсим полученне данные
         // Если данные вернулись не в JSON формате
-        // возвращаем ошибку 500
+        // возвращаем ошибку NotJson
         try { ans = JSON.parse(xhr.responseText); }
         catch (e) {
-            error = new ErrorRequestObject(500, xhr.responseText, data);
+            error = new ErrorRequestObject(
+                ErrorRequestCode.NotJson,
+                xhr.responseText,
+                data
+            );
+            this.callbackError(error);
+            return false;
         }
         
         // Сервер возвращает ответ в объекте response
-        if (!error && typeof ans.response !== 'undefined') {
+        if (typeof ans.response !== 'undefined') {
             this.callbackSuccess(ans.response);
             return true;
         }
         
         // Сервер вернул ошибку
-        if(!error && ans.error) {
+        if(ans.error) {
             error = new ErrorRequestObject(
                 ans.error.error_code,
                 ans.error.error_msg,
@@ -240,7 +381,11 @@ export class Request extends Query
         
         // Неизестная ошибка
         if(!error) {
-            error = new ErrorRequestObject(500, xhr.responseText, data);
+            error = new ErrorRequestObject(
+                ErrorRequestCode.Unknow,
+                xhr.responseText,
+                data
+            );
         }
 
         this.callbackError(error);
@@ -250,7 +395,8 @@ export class Request extends Query
     /** @inheritdoc */
     protected checkBeforeInit() : boolean
     {
-        var params = this.queryData.getData();
+        var origin = this.queryData.getData();
+        var params = this.convertParamsToAns(origin);
 
         // Жизнь токена истекла
         if(this.queryData.token && this.queryData.token.isExpired()) {
@@ -263,10 +409,13 @@ export class Request extends Query
         }
 
         // В имени метода или функции присудствуют запрещенные символы
-        if(!NameChecker.test(this.queryData.apiClass) || !NameChecker.test(this.queryData.apiMethod)) {
+        if(!NameChecker.test(this.queryData.apiClass)
+        || !NameChecker.test(this.queryData.apiMethod)) {
             throw new ErrorRequestObject(500, 'в имени метода или функции присудствуют запрещенные символы', params);
         }
 
         return true;
     }
 }
+
+export default Request;

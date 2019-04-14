@@ -12,6 +12,9 @@ use Look\Type\Converter;
 use Look\Type\Exceptions\UndefinedException;
 use Look\Type\Exceptions\AutoArgumentException;
 
+use Look\Type\Enum;
+use Look\Type\Exceptions\EnumException;
+
 use Look\Token\IToken;
 use Look\Token\DB\ITokenDataBase;
 use Look\Token\DB\FSTokenDataBase;
@@ -136,6 +139,47 @@ class Caller
         throw new BadTokenException();
     }
     
+    /**
+     * Проверяет токен и права
+     * 
+     * @param string $name  -> Название
+     * @param string $class -> Класс Enum
+     * @param string $value -> Значение
+     * @return Enum|null FALSE, если это не токен
+     * 
+     * @throws EnumException -> Неверный формат Enum
+     */
+    private static function checkArgOfEnum(string $name, string $class, $value) : ?Enum
+    {
+        // Проверяем наследие базового типа токена
+        if(!is_subclass_of($class, Enum::class)) {
+            return null;
+        }
+        
+        // Передан объект
+        if(is_object($value)) {
+            $className = get_class($value);
+            if($className !== false) {
+
+                // Класс соответствует указанному
+                if($className == $class) {
+                    return $value;
+                }
+
+                throw new EnumException($name);
+            }
+        }
+        // Определеям значение,
+        // если оно существует возвращаем его
+        $hasValueFn  = "$class::hasValue";
+        $hasValueVal = $hasValueFn($value);
+        if($hasValueVal !== null) {
+            return $hasValueVal;
+        }
+        
+        throw new EnumException($name);
+    }
+        
     /**
      * Возвращает тип преобразования
      * 
@@ -440,10 +484,22 @@ class Caller
                 if(class_exists($type)) {
                     
                     $tmpFix   = null;
-                    $tmpToken = static::checkArgOfToken($type, $value);
                     
-                    if($tmpToken) { $tmpFix = $tmpToken; }
-                    else if(is_object($value)) {
+                    // Проверка токена
+                    $tmpToken = static::checkArgOfToken($type, $value);
+                    if($tmpToken) {
+                        $tmpFix = $tmpToken;
+                        break;
+                    }
+                    
+                    // Проверка Enum
+                    $tmpEnum = static::checkArgOfEnum($name, $type, $value);
+                    if($tmpEnum) {
+                        $tmpFix = $tmpEnum;
+                        break;
+                    }
+                    
+                    if(is_object($value)) {
 
                         // Проверяем объект на соответствие
                         if($value instanceof $type) { $tmpFix = $value; }

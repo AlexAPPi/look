@@ -27,22 +27,16 @@ use Look\Type\Traits\Singleton;
 final class Controller
 {
     use Singleton;
-
-    /** Название аргумента, по каторому передается токен */
-    const accessTokenArgName    = 'access_token';
     
-    /** Новое название аргумента, по каторому передается токен */
-    const accessTokenArgNameNew = 'accessToken';
+    /** Название аргумента, по каторому передается токен по умолчанию */
+    const accessTokenArgName = 'accessToken';
 
     /** Название заголовка, через который передается токен */
     const accessTokenHeaderName = 'HTTP_X_Look_ACCESS_TOKEN'; //'X-Look-Access-Token';
     
-    /** Название аргумента, по которому передается зашифрованное сообщение */
-    const protectedDataArgName = 'protected_data';
-
-    /** Новое название аргумента, по которому передается зашифрованное сообщение */
-    const protectedDataArgNameNew = 'protectedData';
-
+    /** Название аргумента, по которому передается зашифрованное сообщение по умолчанию */
+    const protectedDataArgName = 'protectedData';
+    
     /** Название заголока, через который передается зашифрованное сообщение */
     const protectedDataHeaderName = 'HTTP_X_Look_PROTECTED_DATA'; //'X-Look-Protected-Data';
 
@@ -396,12 +390,14 @@ final class Controller
                     // Без привязки
                     $unfix = array_merge([], $params);
                     
-                    // Извлекаем данные
-                    // Зашифрованные данные не могут быть переданы при передаче токена через параметр
-                    if(!isset($unfix[static::accessTokenArgNameNew])
-                    && !isset($unfix[static::accessTokenArgName])) {
-                        $unfix[static::accessTokenArgNameNew]   = static::extractTokenFromRequest($unfix);
-                        $unfix[static::protectedDataArgNameNew] = static::extractProtectedDataFromRequest($unfix);
+                    // Извлекаем токен из заголовка
+                    if(!isset($unfix[static::accessTokenArgName])) {
+                        $unfix[static::accessTokenArgName]   = static::extractTokenFromRequest($unfix);
+                    }
+                    
+                    // Извлекаем зашифрованные данные из заголовка
+                    if(!isset($unfix[static::protectedDataArgName])) {
+                        $unfix[static::protectedDataArgName] = static::extractProtectedDataFromRequest($unfix);
                     }
                     
                     $apiClass = APP_NAME . '\\API\\' . $apiClass;
