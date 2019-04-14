@@ -1,8 +1,5 @@
 import XHRable from '../Waiter/XHRable';
-import {QueryMethod} from './QueryData';
 import QueryData from './QueryData';
-
-export {QueryData, QueryMethod}
 
 /**
  * Формирует запросы
