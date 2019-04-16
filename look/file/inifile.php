@@ -9,7 +9,7 @@ use Look\File\Exceptions\INIFileException;
  */
 class INIFile
 {
-    const TRUE = 'true';
+    const TRUE  = 'true';
     const FALSE = 'false';
     
     /**

@@ -3,6 +3,7 @@
 namespace Look;
 
 use Exception;
+use Look\API\Type\Interfaces\IType;
 
 /**
  * Базовый класс менеджера загрузки классов
@@ -87,6 +88,13 @@ class AutoLoadManager
         // Вызываем функцию, которая нужна для автозагрузчика
         if(method_exists($globalName, static::onAutoloadMethod)) {
             call_user_func([$globalName, static::onAutoloadMethod]);
+        }
+        
+        // Проводим проверку синтексиса типов
+        if(DEBUG) {
+            if(is_subclass_of($globalName, IType::class)) {
+                
+            }
         }
         
         return $fullPath;

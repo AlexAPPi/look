@@ -6,31 +6,17 @@ use ReflectionMethod;
 use ReflectionFunction;
 use ReflectionParameter;
 
+use Look\API\Type\TypeManager;
+use Look\API\Type\Interfaces\IType;
+use Look\API\Type\Interfaces\IArray;
+
+use Look\API\Type\Exceptions\ArrayException;
+use Look\API\Type\Exceptions\BooleanException;
+use Look\API\Type\Exceptions\UndefinedException;
+use Look\API\Type\Exceptions\BooleanArrayException;
+use Look\API\Type\Exceptions\AutoArgumentException;
+
 use Look\Exceptions\InvalidArgumentException;
-
-use Look\Type\Converter;
-use Look\Type\Exceptions\UndefinedException;
-use Look\Type\Exceptions\AutoArgumentException;
-
-use Look\Type\Enum;
-use Look\Type\Exceptions\EnumException;
-
-use Look\Token\IToken;
-use Look\Token\DB\ITokenDataBase;
-use Look\Token\DB\FSTokenDataBase;
-
-use Look\Token\Exceptions\BadTokenException;
-use Look\Token\Exceptions\AccessTokenException;
-use Look\Token\Exceptions\ExpiredTokenException;
-
-use Look\Type\Exceptions\ArrayException;
-use Look\Type\Exceptions\BooleanException;
-use Look\Type\Exceptions\BooleanArrayException;
-
-use Look\API\Exceptions\APICallerException;
-use Look\API\Exceptions\ObjectStructException;
-
-use Look\Type\Interfaces\IValue;
 
 /**
  * Реализует интерфейс API обращение к функциям с помощью данных
@@ -41,263 +27,34 @@ class Caller
     use \Look\Type\Traits\Singleton;
     use \Look\Type\Traits\Settingable;
     
-    /** @var ITokenDataBase объект базы данных */
-    private $tokenDB;
-
     /**
-     * @throws APICallerException
-     */
-    private function __construct()
-    {
-        $tokenDB = $this->getSetting('tokenDB', FSTokenDataBase::class);
-        if(!is_subclass_of($tokenDB, ITokenDataBase::class)) {
-            throw new APICallerException('в настройках указана база данных, которая не является наследником: ' . ITokenDataBase::class);
-        }
-        $tokenDB .= '::getInstance';
-        $this->tokenDB = $tokenDB();
-    }
-    
-    /**
-     * Возращает экземпляр базы данных
-     * @return ITokenDataBase
-     */
-    public static function &getTokenDB() : ITokenDataBase
-    {
-        return static::getInstance()->tokenDB;
-    }
-
-    /**
-     * Добавляет новый тип для распознавания типа
-     * @param string $type      -> Тип
-     * @param string $class     -> Класс
-     * @param string $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
-     * @return void
-     * @throws MyInvalidException
-     */
-    public static function addType(string $type, string $class, string $exception = null) : void
-    {
-        Converter::addTypeForClass($type, $class);
-        if($exception) {
-            AutoArgumentException::addTypeException($type, $exception);
-        }
-    }
-
-    /**
-     * Регистрирует исключение которое будет вызвано при непраильной передаче данного типа
-     * @param string $type      -> Тип
-     * @param string $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
-     * @return void
-     * @throws MyInvalidException
-     */
-    public static function addTypeException(string $type, string $exception, string $class = null) : void
-    {
-        AutoArgumentException::addTypeException($type, $exception);
-        if($class) {
-            Converter::addTypeForClass($type, $class);
-        }
-    }
-
-    /**
-     * Проверяет токен и права
-     * 
-     * @param string             $class -> Класс проверки токена
-     * @param string|SimpleToken $token -> Токен
-     * @return IToken|null FALSE, если это не токен
-     * 
-     * @throws AccessTokenException  -> Формируется, если токен не владеет подписью для необходимых разрешений
-     * @throws ExpiredTokenException -> Формируется, если токен истек
-     * @throws BadTokenException     -> Формируется, если токен не найден или задан не верно
-     */
-    private static function checkArgOfToken(string $class, $token) : ?IToken
-    {
-        // Проверяем наследие базового типа токена
-        if(!is_subclass_of($class, IToken::class)) {
-            return null;
-        }
-        
-        // Извлекаем токен из базы данных
-        if(is_string($token)) {
-            $token = static::getInstance()->tokenDB->get($token, $class);
-        }
-
-        // Токен получен и 
-        if($token instanceof IToken) {
-
-            // Токен истек
-            if($token->isExpired()) {
-                throw new ExpiredTokenException();
-            }
-
-            // Проверяем полномочия
-            if(!$token->checkPermissions()) {
-                throw new AccessTokenException();
-            }
-            
-            return $token;
-        }
-
-        throw new BadTokenException();
-    }
-    
-    /**
-     * Проверяет токен и права
-     * 
-     * @param string $name  -> Название
-     * @param string $class -> Класс Enum
-     * @param string $value -> Значение
-     * @return Enum|null FALSE, если это не токен
-     * 
-     * @throws EnumException -> Неверный формат Enum
-     */
-    private static function checkArgOfEnum(string $name, string $class, $value) : ?Enum
-    {
-        // Проверяем наследие базового типа токена
-        if(!is_subclass_of($class, Enum::class)) {
-            return null;
-        }
-        
-        // Передан объект
-        if(is_object($value)) {
-            $className = get_class($value);
-            if($className !== false) {
-
-                // Класс соответствует указанному
-                if($className == $class) {
-                    return $value;
-                }
-
-                throw new EnumException($name);
-            }
-        }
-        // Определеям значение,
-        // если оно существует возвращаем его
-        $hasValueFn  = "$class::hasValue";
-        $hasValueVal = $hasValueFn($value);
-        if($hasValueVal !== null) {
-            return $hasValueVal;
-        }
-        
-        throw new EnumException($name);
-    }
-        
-    /**
-     * Возвращает тип преобразования
-     * 
+     * Преобразует тип параметра к сестемному
      * @param ReflectionParameter $param -> Объект параметра
-     * @param string              $сlass -> Класс типа
      * @return string
      */
-    private static function getArgFixType(ReflectionParameter $param, &$сlass = null)
+    public static function argTypeToSystem(ReflectionParameter $param) : string
     {
-        if(!$param->hasType()) {
-            return Converter::TMixed;
-        }
-        
-        $type    = (string)$param->getType();
-        $newType = Converter::getTypeForClass($type);
-        
-        // Если нашлось соответсвие типу и классу
-        if($newType !== null) {
-            $сlass = $type;
-            $type  = $newType;
-        }
-        
-        // Тип относится к базовым представлениям (int, string, float, double, ...)
-        if(Converter::isScalarType($type)) {
-            
-            // Конвертируем в массив значений
-            // Т.к передача осуществляется списком
-            if($param->isVariadic()) {
-                return Converter::getArrayTypeFor($type);
-            }
-            
-            return $type;
-        }
-
-        return $type;
-    }
-    
-    /**
-     * Создает новый объект указанного типа
-     * 
-     * @param ReflectionParameter $param    -> Объект параметра
-     * @param mixed               $value    -> Значение
-     * @param string              $type     -> Тип объекта
-     * @param bool                $convert  -> Преобразовать тип под подходящий
-     * @return mixed
-     * @throws ParametrException При ошибке создания объекта 
-     */
-    private static function createObject(ReflectionParameter $param, $value, $type, bool $convert = true)
-    {
-        try {
-            // Если указан параметр в виде Variadic цепочки
-            if($param->isVariadic()) {
-                
-                $result = [];
-                foreach($value as $itemKey => $itemValue) {
-                    $result[$itemKey] = new $type(... static::getFixArgsForClassFunc($type, '__construct', $itemValue, $convert));
-                }
-                ksort($result);
-                return $result;
-            }
-
-            // Обертываем в массив для возможности подстановки
-            if(!is_array($value)) {
-                $value = [$value];
-            }
-
-            // Проверяем аргументы на соответствие
-            return new $type(... static::getFixArgsForClassFunc($type, '__construct', $value, $convert));
-        }
-        // Ловим дочерние ошибки и комбинируем их
-        catch (InvalidArgumentException $ex) {
-
-            // Скрываем название типа подменяя его на object,
-            // если это не скалярный тип
-            $desc = Converter::getClassForType($type);
-            if($desc === null) {
-                $desc = Converter::TObject;
-            }
-            
-            throw new ObjectStructException($param->name, $desc, $ex->getCode(), $ex);
-        }
-    }
-    
-    /**
-     * Использует интерфейс const ItemType для определения типа
-     * @param ReflectionParameter $param
-     * @param mixed $value
-     * @param mixed $defaultType
-     * @param mixed $type
-     * @return int -> 0 - тип определен, 1 - тип определен и его нужно преобразовывать, 2 - можно вернуть текущее значение
-     */
-    private static function getArgFixValueHelper(ReflectionParameter $param, &$defaultType, &$type) : int
-    {
-        $tmpClass = $param->getDeclaringClass();
-        
-        if($tmpClass) {
-            
-            $class = $tmpClass->getName();
-            
-            // Проверка реализации интерфейса TypedArray::ItemType
-            if(is_subclass_of($class, IValue::class)) {
-                if($param->getDeclaringFunction()->getName() == '__construct') {
-                    $itemType = $class.'::ItemType';
-                    if(defined($itemType)) {
-                        $defaultType = constant($itemType);
-                        $type        = Converter::getFixType($defaultType);
-                        return 1;
-                    }
-                }
-            }
-        }
-
-        // Преобразовываем значение в нужный тип не требуется
         if($param->hasType()) {
-            return 0;
+            
+            $type = (string)$param->getType();
+            
+            switch($type) {
+                case 'int'   :    return IType::TInteger;
+                case 'float' :    return IType::TDouble;
+                case 'bool'  :    return IType::TBool;
+                case 'array':     return IType::TArray;
+                case 'string' :   return IType::TString;
+                case 'object' :   return IType::TObject;
+                case 'iterable' : return IType::TIterable;
+                default : break;
+            }
+            
+            if(class_exists($type)) {
+                return IType::TObject;
+            }
         }
         
-        return 2;
+        return IType::TMixed;
     }
     
     /**
@@ -314,207 +71,195 @@ class Caller
      */
     private static function getArgFixValue(ReflectionParameter $param, $value, bool $convert = true)
     {
-        $type        = null;
-        $defaultType = null;
+        $paramName = $param->name;
+        $paramType = static::argTypeToSystem($param);
         
-        // ItemType interface
-        if(static::getArgFixValueHelper($param, $defaultType, $type) === 2) {
-            return $value;
-        }
+        $convertedType  = null;
+        $convertedValue = null;
         
-        // Название агрумента и его передаваемое значение 
-        $name         = $param->name;
-        $tmpType      = null;
-        $tmpFix       = null;
-        $classOfType  = null;
+        $paramDefaultType = $param->hasType() ? (string)$param->getType() : null;
         
-        if($defaultType === null) {
-            $typeObj     = $param->getType();
-            $defaultType = (string)$typeObj;
-            $fixArgType  = static::getArgFixType($param, $classOfType);
-            $type        = Converter::getFixType($fixArgType);
-        }
-                
-        switch($type) {
+        switch($paramType) {
     
             case '':
-            case Converter::TMixed:
-            case Converter::TNULL:
+            case IType::TMixed:
+            case IType::TNULL:
                 
-                $tmpFix = $value;
+                // Если тип не задан,
+                // передаем значение как есть
+                $convertedValue = $value;
+                $convertedType  = IType::TMixed;
                 
             break;
-                    
-            case Converter::TBool:
-
-                $tmpFix = Converter::anyToBool($value);
-                if($tmpFix === null) {
-                    throw new BooleanException($name);
+            
+            case IType::TBool:
+                
+                $convertedType  = IType::TBool;
+                $convertedValue = TypeManager::anyToBool($value);
+                if($convertedValue === null) {
+                    throw new BooleanException($paramName);
                 }
                 
             break;
             
-            case Converter::TBoolArray:
+            case IType::TBoolArray:
 
                 // Определяем, является ли значение массивом
                 // Определяем спец тип массива и сравниваем его с указанным
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert) && $tmpType === Converter::TArray) {
-                                        
-                    // Функция detectArrNumeric восзвращает точный тип,
-                    // поэтому, если нам нужно определить TIntegerArray, мы игнорируем приставку
-                    if(Converter::detectArrNumeric($tmpFix, $tmpFix) === Converter::TBoolArray) {
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
+                && $convertedType === IType::TArray) {
+                    
+                    $convertedType = TypeManager::detectArrType(
+                        $convertedValue,
+                        $convertedValue
+                    );
+                    
+                    // Тип массива совпал
+                    if($convertedType == IType::TBoolArray) {
                         break;
                     }
                 }
-
-                // Если передан 1 параметр bool перемещаем его в массив
-                $tmpFix = Converter::anyToBool($value);
-                if($tmpFix !== null) {
-                    $tmpFix = [$tmpFix];
+                
+                // TODO WRAP_ARRAY
+                
+                // Если передан 1 параметр с типом bool
+                // обертываем его в массив
+                $convertedValue = TypeManager::anyToBool($value);
+                if($convertedValue !== null) {
+                    $convertedType  = IType::TBoolArray;
+                    $convertedValue = [$convertedValue];
                     break;
                 }
                 
-                throw new BooleanArrayException($name);
+                throw new BooleanArrayException($paramName);
             
-            case Converter::TArray:
+            case IType::TArray:
 
                 // Если не удалось определить тип, или передаваемый тип не совпадает с заданным
                 // Возвращаем ошибку передачи параметра
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert)) {
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)) {
                     
-                    if(Converter::compareTypes($type, $tmpType)) {
+                    // Типы совпадают
+                    if($paramType == $convertedType) {
                        break;
                     }
                     
+                    // TODO WRAP_ARRAY
+                    
                     // Заворачиваем в массив
-                    $tmpFix = [$tmpFix];
+                    $convertedType  = IType::TArray;
+                    $convertedValue = [$convertedValue];
                     break;
                 }
                 
-                throw new ArrayException($name);
-                
-            case Converter::TInteger:
-            case Converter::TDouble:
-            case Converter::TString:
+                throw new ArrayException($paramName);
+            
+            case IType::TInteger:
+            case IType::TDouble:
+            case IType::TString:
                 
                 // Если не удалось определить тип, или передаваемый тип не совпадает с заданным
                 // Возвращаем ошибку передачи параметра
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert) &&
-                   Converter::compareTypesFunc($type, $tmpType)
-                ) break;
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
+                && $paramType == $convertedType) break;
                 
-                throw AutoArgumentException::of($name, $type);
-
-            case Converter::TNumeric:
+                throw AutoArgumentException::of($paramName, $paramType);
+            
+            case IType::TNumeric:
 
                 // Преобразовываем в int|double
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert) &&
-                  ($tmpType === Converter::TDouble || $tmpType === Converter::TInteger)
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
+                && ($convertedType == IType::TDouble || $convertedType == IType::TInteger)
                 ) break;
                 
-                throw AutoArgumentException::of($name, $type);
-
-            case Converter::TUnsignedNumeric:
+                throw AutoArgumentException::of($paramName, $paramType);
+            
+            case IType::TUnsignedNumeric:
                 
                 // Значение имеет тип не отрицательного числа
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert) && $tmpFix >= 0 &&
-                   ($tmpType === Converter::TDouble || $tmpType === Converter::TInteger)
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
+                && $convertedValue >= 0
+                && ($convertedType == IType::TDouble || $convertedType == IType::TInteger)
                 ) break;
                 
-                throw AutoArgumentException::of($name, $type);
-                
-            case Converter::TUnsignedInteger:
-            case Converter::TUnsignedDouble:
-
+                throw AutoArgumentException::of($paramName, $paramType);
+            
+            case IType::TUnsignedInteger:
+            case IType::TUnsignedDouble:
+            
                 // Значение имеет тип не отрицательного числа
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert) && $tmpFix >= 0 && (
-                    ($tmpType === Converter::TDouble && $type === Converter::TUnsignedDouble) ||
-                    ($tmpType === Converter::TInteger && $type === Converter::TUnsignedInteger)
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
+                && $convertedValue >= 0 && (
+                    ($convertedType === IType::TDouble && $paramType === IType::TUnsignedDouble) ||
+                    ($convertedType === IType::TInteger && $paramType === IType::TUnsignedInteger)
                 )) break;
 
-                throw AutoArgumentException::of($name, $type);
-
-            case Converter::TDoubleArray:
-            case Converter::TIntegerArray:
-            case Converter::TNumericArray:
-            case Converter::TUnsignedDoubleArray:
-            case Converter::TUnsignedIntegerArray:
-            case Converter::TUnsignedNumericArray:
- 
+                throw AutoArgumentException::of($paramName, $paramType);
+            
+            case IType::TDoubleArray:
+            case IType::TIntegerArray:
+            case IType::TNumericArray:
+            case IType::TUnsignedDoubleArray:
+            case IType::TUnsignedIntegerArray:
+            case IType::TUnsignedNumericArray:
+            
                 // Определяем, является ли значение массивом
                 // Определяем спец тип массива и сравниваем его с указанным
-                if(Converter::detectBaseType($value, $tmpFix, $tmpType, $convert)) {
+                if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)) {
                     
-                    if($tmpType == Converter::TArray) {
+                    // Значение определилось как массив
+                    if($convertedType == IType::TArray) {
                         
-                        // Функция detectArrNumeric возвращает точный тип,
-                        // поэтому, если нам нужно определить TIntegerArray, мы игнорируем приставку Unsigned
-                        $detectArrType = Converter::detectArrNumeric($tmpFix, $tmpFix2);
-                        if($detectArrType && Converter::compareSubTypes($detectArrType, $type)) {
-                            $tmpFix = $tmpFix2;
-                            break;   
-                        }
-                    }
-                    
-                    // Извлекаем значение типа элемента массива
-                    // Если типы совпадают или проходят по подгонке
-                    $tmpTypeItem = Converter::extractArrayTypeItem($type);
-                    if($tmpTypeItem !== false) {
-                        if(Converter::compareSubTypes($tmpType, $tmpTypeItem)) {
-                            $tmpFix = [$tmpFix];
+                        $convertArrValue = null;
+                        $convertArrType  = TypeManager::detectArrType($convertedValue, $convertArrValue);
+                        
+                        // Точный тип массива является дочерним для базового
+                        if($convertArrType !== null
+                        && TypeManager::instanteOf($convertArrType, $paramType)) {
+                            $convertedType  = $convertArrType;
+                            $convertedValue = $convertArrValue;
                             break;
                         }
                     }
+                    else {
+                                        
+                        // TODO WRAP_ARRAY
+
+                        // Извлекаем значение типа элемента массива
+                        // Если типы совпадают или проходят по подгонке
+                        $convertItemType = TypeManager::extractArrayTypeItem($paramType);
+                        if($convertItemType !== null) {
+                            if(TypeManager::compareSubTypes($tmpType, $tmpTypeItem)) {
+
+                                $convertedValue = [$convertedValue];
+                                break;
+                            }
+                        }
+                    }
                 }
-                                
-                throw AutoArgumentException::of($name, $type);
+                
+                throw AutoArgumentException::of($paramName, $paramType);
 
             // TODO:
             // Callable не поддерживается (v1.1)
 
-            case Converter::TCallable:
+            case IType::TCallable:
                 
-                throw AutoArgumentException::of($name, $type);
+                throw AutoArgumentException::of($paramName, $paramType);
                 
             default:
-
+            
                 // Создает объект из массива
                 // Защита организована только на уровне передачи параметров
                 // Для улучшения защиты указывайте типы аргументов функции
-                if(class_exists($type)) {
-                    
-                    $tmpFix   = null;
-                    
-                    // Проверка токена
-                    $tmpToken = static::checkArgOfToken($type, $value);
-                    if($tmpToken) {
-                        $tmpFix = $tmpToken;
-                        break;
-                    }
-                    
-                    // Проверка Enum
-                    $tmpEnum = static::checkArgOfEnum($name, $type, $value);
-                    if($tmpEnum) {
-                        $tmpFix = $tmpEnum;
-                        break;
-                    }
-                    
-                    if(is_object($value)) {
-
-                        // Проверяем объект на соответствие
-                        if($value instanceof $type) { $tmpFix = $value; }
-                        else { throw AutoArgumentException::of($name, $type); }
-                    }
-                    else {
-                        $tmpFix = static::createObject($param, $value, $type, $convert);
-                    }
-
+                if(class_exists($paramType)) {
+                    $tmpFix = ClassHandler::detect($param, $value, $paramType, $convert);
                     break;
                 }
-
-                throw AutoArgumentException::of($name, $type);
+                
+                throw AutoArgumentException::of($paramName, $paramType);
         }
-
+        
         // Специальный класс предназначений для
         // типизации аргументов
         if($classOfType !== null) {
@@ -526,15 +271,15 @@ class Caller
         }
         
         $currectType = gettype($tmpFix);
-
+        
         // Тип пустой
         // Тип объект
         // Тип совпал с подобранным
         // Аргумент Variadic и тип массива подходит к данному типу
-        if(empty($defaultType) ||
-           Converter::compareTypesFunc($defaultType, $currectType) ||
-           (!$typeObj->isBuiltin() && $currectType == Converter::TObject) ||
-           ($param->isVariadic() && Converter::compareTypesFunc($defaultType, Converter::extractArrayTypeItem($type)))
+        if(empty($defaultType)
+        || TypeManager::compareTypesFunc($defaultType, $currectType)
+        || (!$typeObj->isBuiltin() && $currectType == IType::TObject)
+        || ($param->isVariadic() && TypeManager::compareTypesFunc($defaultType, TypeManager::extractArrayTypeItem($type)))
         ) {
             return $tmpFix;
         }
@@ -559,6 +304,12 @@ class Caller
             // Variadic не может быть значением по умолчанию,
             // поэтому проверяем доступность значения
             if($param->isDefaultValueAvailable()) {
+                
+                // Константа
+                if($param->isDefaultValueConstant()) {
+                    return constant($param->getDefaultValueConstantName());
+                }
+                
                 return $param->getDefaultValue();
             }
             
@@ -586,9 +337,9 @@ class Caller
      * @return mixed
      */
     private static function getFixArgsForParameters($funcParams, array $args, bool $convert = true)
-    {      
+    {
         // Определяем тип ключей
-        $isAssocA = Converter::arrIsAssoc($args);
+        $isAssocA = TypeManager::arrIsAssoc($args);
         $result   = [];
         $index    = 0;
         
@@ -609,7 +360,7 @@ class Caller
                     }
                 }
                 else { $newArgs = $args[$param->name] ?? null; }
-
+                
                 // Склеиваем в цепочку аргументы
                 $tmpRes = static::getArgValue($param, $newArgs, $convert);
                 $result = array_merge($result, is_array($tmpRes) ? $tmpRes : [$tmpRes]);

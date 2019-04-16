@@ -33,11 +33,11 @@ trait Logable
     {
         if($this->logable_general) {
             $date     = date($this->logable_period);
-            $fileName = BASE_DIR . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR . $this->logable_prefix.'_'.$date.'.txt';
-        } else{
+            $fileName = LOG_DIR . DIRECTORY_SEPARATOR . $this->logable_prefix.'_'.$date.'.txt';
+        } else {
             $class    = str_replace('\\', '@', get_class($this));
             $date     = date($this->logable_period);
-            $fileName = BASE_DIR . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR . $this->logable_prefix.'_'.$class.'_'.$date.'.txt';
+            $fileName = LOG_DIR . DIRECTORY_SEPARATOR . $this->logable_prefix.'_'.$class.'_'.$date.'.txt';
         }
         
         $class  = get_class($this);
