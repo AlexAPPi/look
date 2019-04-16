@@ -8,7 +8,7 @@ define('DEBUG', true);
 define('LOOK_DIR', __DIR__);
 
 /** @var string Родительская директория директории движка /look/../ */
-define('ROOT_LOOK_DIR', LOOK_DIR . '/..');
+define('ROOT_LOOK_DIR', dirname(LOOK_DIR));
 
 defined('ROOT_APP_DIR') ||
 /** @var string Родительская директория директории приложения /app/../  */

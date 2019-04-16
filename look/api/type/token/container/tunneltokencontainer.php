@@ -1,15 +1,15 @@
 <?php
 
-namespace Look\Token\Container;
+namespace Look\API\Type\Token\Container;
 
-use Look\Token\ITunnelToken;
-use Look\Token\DB\ITokenDataBase;
+use Look\API\Type\Token\ITunnelToken;
+use Look\API\Type\Token\DataBase\ITokenDataBase;
 
 use Look\Crypt\RSA\KeyPair;
 use Look\Crypt\RSA\PublicKey;
 use Look\Crypt\RSA\PrivateKey;
 
-use Look\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\Exceptions\BadTokenException;
 
 /**
  * Токен с тунелем шифрования трафика

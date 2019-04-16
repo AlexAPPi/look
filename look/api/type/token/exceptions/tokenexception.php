@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Token\Exceptions;
+namespace Look\API\Type\Token\Exceptions;
 
 use Look\Exceptions\SystemException;
 

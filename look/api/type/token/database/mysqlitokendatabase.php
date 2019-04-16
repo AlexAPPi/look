@@ -1,17 +1,17 @@
 <?php
 
-namespace Look\Token\DB;
+namespace Look\API\Type\Token\DataBase;
 
 use mysqli;
 
-use Look\Token\IToken;
-use Look\Token\Container\TokenContainer;
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\Container\TokenContainer;
 
-use Look\Token\DB\TokenDataBase;
-use Look\Token\DB\Exceptions\MySQLiTokenDataBaseException;
-use Look\Token\DB\Exceptions\MySQLiTokenDataBaseSecureException;
+use Look\API\Type\Token\DataBase\TokenDataBase;
+use Look\API\Type\Token\DataBase\Exceptions\MySQLiTokenDataBaseException;
+use Look\API\Type\Token\DataBase\Exceptions\MySQLiTokenDataBaseSecureException;
 
-use Look\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\Exceptions\BadTokenException;
 
 /**
  * Базовая файловая база данных токенов

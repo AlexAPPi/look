@@ -58,12 +58,12 @@ class IntegerArray extends NumericArray
     /** {@inheritdoc} */
     public function __getItemType(): string
     {
-        //return self::;
+        return self::TInteger;
     }
     
     /** {@inheritdoc} */
     public function __getScalarItemType(): string
     {
-        return self::TInteger2;
+        return self::TInteger;
     }
 }

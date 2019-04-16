@@ -2,21 +2,25 @@
 
 namespace Look\API;
 
+use ReflectionParameter;
+
+use Look\Exceptions\SystemLoginException;
+
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\DataBase\ITokenDataBase;
+use Look\API\Type\Token\DataBase\MySQLiTokenDataBase;
+use Look\API\Type\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\Exceptions\AccessTokenException;
+use Look\API\Type\Token\Exceptions\ExpiredTokenException;
+
 use Look\API\Caller;
-use Look\Type\Converter;
-
-use Look\Token\IToken;
-use Look\Token\DB\ITokenDataBase;
-use Look\Token\DB\MySQLiTokenDataBase;
-use Look\Token\Exceptions\BadTokenException;
-use Look\Token\Exceptions\AccessTokenException;
-use Look\Token\Exceptions\ExpiredTokenException;
-
-use Look\Type\Enum;
-use Look\Type\Exceptions\EnumException;
-
 use Look\API\Exceptions\APICallerException;
 use Look\API\Exceptions\ObjectStructException;
+use Look\API\Type\Exceptions\AutoArgumentException;
+use Look\API\Type\Exceptions\InvalidArgumentException;
+
+use Look\API\Type\Enum;
+use Look\API\Type\Exceptions\EnumException;
 
 /**
  * Обработчик нестандартных типов
@@ -58,6 +62,47 @@ class ClassHandler
     }
     
     /**
+     * Проверяет, существует ли такой тип
+     * @param string $class -> Класс
+     * @return bool
+     */
+    public static function has(string $class) : bool
+    {
+        return isset(static::$handlers[$class]);
+    }
+    
+    /**
+     * Добавляет новый тип для распознавания при вызове API,
+     * если требуется нестандартный обработчик
+     * 
+     * @param string   $class     -> Класс
+     * @param callable $handler   -> Обработчик типа (Должен принимать 1 значение mixed $value)
+     * @param string   $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
+     * @param string   $shortName -> Короткое название типа
+     * @return void
+     * @throws SystemLoginException
+     */
+    public static function add(string $class, callable $handler, string $exception = null) : void
+    {
+        static::$handlers[$class] = $handler;
+        if($exception) {
+            static::addException($class, $exception);
+        }
+    }
+    
+    /**
+     * Регистрирует исключение которое будет вызвано при непраильной передаче данного типа
+     * @param string $class     -> Класс объекта
+     * @param string $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
+     * @return void
+     * @throws MyInvalidException
+     */
+    public static function addException(string $class, string $exception) : void
+    {
+        AutoArgumentException::addTypeException($class, $exception);
+    }
+    
+    /**
      * Создает новый объект указанного типа
      * 
      * @param ReflectionParameter $param    -> Объект параметра
@@ -67,7 +112,7 @@ class ClassHandler
      * @return mixed
      * @throws ParametrException При ошибке создания объекта 
      */
-    private static function createObject(ReflectionParameter $param, $value, $type, bool $convert = true)
+    private static function standartHandler(ReflectionParameter $param, $value, string $type, bool $convert = true)
     {
         try {
             // Если указан параметр в виде Variadic цепочки
@@ -107,62 +152,24 @@ class ClassHandler
         // Ловим дочерние ошибки и комбинируем их
         catch (InvalidArgumentException $ex) {
             
-            // Скрываем название типа подменяя его на object,
-            // если это не скалярный тип
-            $desc = Converter::getClassForType($type);
-            if($desc === null) {
-                $desc = Converter::TObject;
-            }
-            
-            throw new ObjectStructException($param->name, $desc, $ex->getCode(), $ex);
-        }
-    }
-    
-    /**
-     * Добавляет новый тип для распознавания типа
-     * @param string   $type      -> Тип
-     * @param string   $class     -> Класс
-     * @param callable $handler   -> Обработчик типа (Должен принимать 1 значение mixed $value)
-     * @param string   $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
-     * @return void
-     * @throws MyInvalidException
-     */
-    public static function add(string $class, callable $handler, string $exception = null) : void
-    {
-        static::$handlers[$class] = $handler;
-        if($exception) {
-            AutoArgumentException::addTypeException($type, $exception);
-        }
-    }
-    
-    /**
-     * Регистрирует исключение которое будет вызвано при непраильной передаче данного типа
-     * @param string $type      -> Тип
-     * @param string $exception -> Исключение которое будет формироваться при неправильной передаче аргумента данного типа
-     * @return void
-     * @throws MyInvalidException
-     */
-    public static function addException(string $type, string $exception, string $class = null) : void
-    {
-        AutoArgumentException::addTypeException($type, $exception);
-        if($class) {
-            Converter::addTypeForClass($type, $class);
+            $errMessage = constant("$ex::argumentErrMessage");
+            throw new ObjectStructException($param->name, $errMessage, $ex->getCode(), $ex);
         }
     }
     
     /**
      * Проверяет токен и права
      * 
-     * @param string             $name  -> Название
-     * @param string             $class -> Класс проверки токена
-     * @param string|SimpleToken $token -> Токен
+     * @param ReflectionParameter $param -> Параметр
+     * @param string              $class -> Класс токена
+     * @param string              $token -> Значение
      * @return IToken|null NULL, если это не токен
      * 
      * @throws AccessTokenException  -> Формируется, если токен не владеет подписью для необходимых разрешений
      * @throws ExpiredTokenException -> Формируется, если токен истек
      * @throws BadTokenException     -> Формируется, если токен не найден или задан не верно
      */
-    public static function checkArgOfToken(string $name, string $class, $token) : ?IToken
+    public static function checkArgOfToken(ReflectionParameter $param, string $class, $token) : ?IToken
     {
         // Проверяем наследие базового типа токена
         if(!is_subclass_of($class, IToken::class)) {
@@ -174,7 +181,7 @@ class ClassHandler
             $token = static::getInstance()->tokenDB->get($token, $class);
         }
 
-        // Токен получен и 
+        // Токен распознан
         if($token instanceof IToken) {
 
             // Токен истек
@@ -194,17 +201,17 @@ class ClassHandler
     }
     
     /**
-     * Проверяет токен и права
+     * Проверяет соответствие Enum
      * 
-     * @param string $name  -> Название
-     * @param string $class -> Класс Enum
-     * @param string $value -> Значение
-     * @return Enum|null Null, если это не токен
+     * @param ReflectionParameter $param -> Параметр
+     * @param string              $class -> Класс Enum
+     * @param string              $value -> Значение
+     * @return Enum|null Null, если это не Enum
      * 
      * @throws EnumException -> Неверный формат Enum
      */
-    public static function checkArgOfEnum(string $name, string $class, $value) : ?Enum
-    {
+    public static function checkArgOfEnum(ReflectionParameter $param, string $class, $value) : ?Enum
+    {        
         // Проверяем наследие базового типа токена
         if(!is_subclass_of($class, Enum::class)) {
             return null;
@@ -220,9 +227,10 @@ class ClassHandler
                     return $value;
                 }
 
-                throw new EnumException($name);
+                throw new EnumException($param->name);
             }
         }
+        
         // Определеям значение,
         // если оно существует возвращаем его
         $hasValueFn  = "$class::hasValue";
@@ -231,36 +239,67 @@ class ClassHandler
             return $hasValueVal;
         }
         
-        throw new EnumException($name);
+        throw new EnumException($param->name);
     }
     
-    public static function detect($param, $value, $type, $convert) {
-        
-        
-                          
-        if(is_object($value)) {
-
-            // Проверяем объект на соответствие
-            if($value instanceof $type) { return $value; }
-            else { throw AutoArgumentException::of($name, $type); }
+    /**
+     *  
+     * @param ReflectionParameter $param   -> Параметр
+     * @param mixed               $value   -> Значение
+     * @param bool                $convert -> Подгон типа
+     * @return object|null Null, если объект не распознан
+     * @throws InvalidArgumentException
+     */
+    public static function detect(ReflectionParameter $param, $value, bool $convert = true) : ?object
+    {
+        // Тип не определен
+        if(!$param->hasType()) {
+            return null;
         }
-        else {
-            return static::createObject($param, $value, $type, $convert);
+        
+        $type = (string)$param->getType();
+        
+        if(isset(static::$handlers[$type])) {
+            
+            try {
+                
+                $handler = static::$handlers[$type];
+                $object  = $handler($param, $type, $value);
+                
+                if($object && $object instanceof $type) {
+                    return $object;
+                }
+                
+                throw AutoArgumentException::of($param->name, $type);
+                
+            } catch (InvalidArgumentException $ex) {
+                $errMessage = constant("$ex::argumentErrMessage");
+                throw new ObjectStructException($param->name, $errMessage, $ex->getCode(), $ex);
+            }
         }
-
         
         // Проверка токена
-        $tmpToken = static::checkArgOfToken($type, $value);
-        if($tmpToken) {
-            $tmpFix = $tmpToken;
-            //break;
+        $token = static::checkArgOfToken($param, $type, $value);
+        if($token) {
+            return $token;
         }
 
         // Проверка Enum
-        $tmpEnum = static::checkArgOfEnum($name, $type, $value);
-        if($tmpEnum) {
-            $tmpFix = $tmpEnum;
-            //break;
+        $enum = static::checkArgOfEnum($param, $type, $value);
+        if($enum) {
+            return $enum;
         }
+        
+        if(is_object($value)) {
+            
+            // Проверяем объект на соответствие
+            if($value instanceof $type) {
+                return $value;
+            }
+            
+            throw AutoArgumentException::of($param->name, $type);
+        }
+        
+        return static::standartHandler($param, $value, $type, $convert);
     }
 }

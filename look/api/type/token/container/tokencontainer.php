@@ -1,18 +1,18 @@
 <?php
 
-namespace Look\Token\Container;
+namespace Look\API\Type\Token\Container;
 
 use JsonSerializable;
 use Look\API\APIResultable;
 
-use Look\Token\IToken;
-use Look\Token\Exceptions\TokenException;
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\Exceptions\TokenException;
 
 use Look\Crypt\RSA\PublicKey;
 use Look\Crypt\RSA\PrivateKey;
 
-use Look\Token\DB\ITokenDataBase;
-use Look\Token\DB\Exceptions\TokenDataBaseSecureException;
+use Look\API\Type\Token\DataBase\ITokenDataBase;
+use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseSecureException;
 
 /**
  * Структура данных токена в базе данных

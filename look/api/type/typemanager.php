@@ -51,7 +51,7 @@ final class TypeManager
         IType::TDouble,
         IType::TString
     ];
-        
+    
     /**
      * Проверяет является ли данный тип скалярным
      * @param string $type -> Тип
@@ -135,7 +135,7 @@ final class TypeManager
      * @param string        $getType -> Определить тип автоматически
      * @return bool
      */
-    function instanteOf($sub, string $base, bool $getType = false) : bool
+    public static function instanteOf($sub, string $base, bool $getType = false) : bool
     {
         if($getType) {
             $subType = gettype($sub);
@@ -227,22 +227,7 @@ final class TypeManager
         $str = str_replace(' ' . IType::TArray, '', $arrayType);
         return TypeChecker::typeExists($str) ? $str : null;
     }
-    
-    /**
-     * Возвращает название согласованного типа или типа который подставляется вместо указанного
-     * 
-     * @param string $type
-     * @return string
-     */
-    public static function getFixType(string $type) : string
-    {
-        if(isset(self::$compareType[$type])) {
-            return self::$compareType[$type];
-        }
-        
-        return $type;
-    }
-        
+            
     /**
      * Преобразует любые значения в bool
      * 
@@ -375,7 +360,7 @@ final class TypeManager
             return $isInt;
         }
 
-        $isDouble = IType::strToDouble($str);
+        $isDouble = static::strToDouble($str);
 
         if ($isDouble !== false) {
 
@@ -596,9 +581,10 @@ final class TypeManager
 
         $tmp = self::strToUnsignedNumeric($str, $type);
 
-        if ($tmp !== false)
+        if ($tmp !== false) {
             return $tmp;
-
+        }
+        
         $type = null;
         return false;
     }

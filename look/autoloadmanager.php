@@ -2,8 +2,8 @@
 
 namespace Look;
 
-use Exception;
 use Look\API\Type\Interfaces\IType;
+use Look\Exceptions\SystemLoginException;
 
 /**
  * Базовый класс менеджера загрузки классов
@@ -79,11 +79,7 @@ class AutoLoadManager
             $fullPath = static::buildPath(ROOT_LOOK_DIR, $globalName);
         }
         
-        try { require $fullPath; }
-        catch (Exception $ex) {
-            err_log($ex);
-            throw $ex;
-        }
+        include $fullPath;
         
         // Вызываем функцию, которая нужна для автозагрузчика
         if(method_exists($globalName, static::onAutoloadMethod)) {

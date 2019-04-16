@@ -2,19 +2,37 @@
 
 /**
  * Возвращает IP клиента
+ * @param string $method -> Метод обнаружения
  * @return string
  */
-function get_client_ip()
+function get_client_ip(string $method = 'getenv') : ?string
 {
-    try
-    {
-        return (new \Look\Client\IP\Detector())->get();
+    $ip   = null;
+    $keys = [
+        'HTTP_CLIENT_IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_FORWARDED',
+        'HTTP_FORWARDED',
+        'REMOTE_ADDR'
+    ];
+    
+    if($method == 'server') {
+        foreach($keys as $key) {
+            if(!empty($_SERVER[$key])) {
+                $ip = $_SERVER[$key];
+            }
+        }
     }
-    catch(Throwable $ex)
-    {
-        err_log($ex);
-        return 'detect error';
+    else {
+        foreach($keys as $key) {
+            $tmp = getenv($key);
+            if($tmp) {
+                $ip = $tmp;
+            }
+        }
     }
+    
+    return $ip;
 }
 
 /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Token;
+namespace Look\API\Type\Token;
 
 use Look\Crypt\RSA\PublicKey;
 use Look\Crypt\RSA\PrivateKey;

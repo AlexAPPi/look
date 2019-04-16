@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Token;
+namespace Look\API\Type\Token;
 
-use Look\Token\Container\TokenContainer;
+use Look\API\Type\Token\Container\TokenContainer;
 
 /**
  * Служит для подтерждения полномочий, которыми наделен пользователь

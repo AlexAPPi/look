@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Token\Container;
+namespace Look\API\Type\Token\Container;
 
 use Look\Settings;
 use Look\Exceptions\SystemException;

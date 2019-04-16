@@ -8,15 +8,12 @@ use ReflectionParameter;
 
 use Look\API\Type\TypeManager;
 use Look\API\Type\Interfaces\IType;
-use Look\API\Type\Interfaces\IArray;
 
 use Look\API\Type\Exceptions\ArrayException;
 use Look\API\Type\Exceptions\BooleanException;
 use Look\API\Type\Exceptions\UndefinedException;
 use Look\API\Type\Exceptions\BooleanArrayException;
 use Look\API\Type\Exceptions\AutoArgumentException;
-
-use Look\Exceptions\InvalidArgumentException;
 
 /**
  * Реализует интерфейс API обращение к функциям с помощью данных
@@ -73,22 +70,19 @@ class Caller
     {
         $paramName = $param->name;
         $paramType = static::argTypeToSystem($param);
-        
+        $originalParamType = $param->hasType() ? (string)$param->getType() : null;
+                
         $convertedType  = null;
         $convertedValue = null;
-        
-        $paramDefaultType = $param->hasType() ? (string)$param->getType() : null;
-        
+                
         switch($paramType) {
-    
-            case '':
+
             case IType::TMixed:
-            case IType::TNULL:
                 
                 // Если тип не задан,
                 // передаем значение как есть
-                $convertedValue = $value;
                 $convertedType  = IType::TMixed;
+                $convertedValue = $value;
                 
             break;
             
@@ -140,7 +134,7 @@ class Caller
                 if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)) {
                     
                     // Типы совпадают
-                    if($paramType == $convertedType) {
+                    if($convertedType == IType::TArray) {
                        break;
                     }
                     
@@ -164,10 +158,10 @@ class Caller
                 && $paramType == $convertedType) break;
                 
                 throw AutoArgumentException::of($paramName, $paramType);
-            
+                
             case IType::TNumeric:
 
-                // Преобразовываем в int|double
+                // Преобразовываем в integer|double
                 if(TypeManager::detectBaseType($value, $convertedValue, $convertedType, $convert)
                 && ($convertedType == IType::TDouble || $convertedType == IType::TInteger)
                 ) break;
@@ -229,8 +223,8 @@ class Caller
                         // Если типы совпадают или проходят по подгонке
                         $convertItemType = TypeManager::extractArrayTypeItem($paramType);
                         if($convertItemType !== null) {
-                            if(TypeManager::compareSubTypes($tmpType, $tmpTypeItem)) {
-
+                            if(TypeManager::instanteOf($convertedType, $convertItemType)) {
+                                $convertedType  = $paramType;
                                 $convertedValue = [$convertedValue];
                                 break;
                             }
@@ -248,43 +242,29 @@ class Caller
                 throw AutoArgumentException::of($paramName, $paramType);
                 
             default:
-            
+                
                 // Создает объект из массива
-                // Защита организована только на уровне передачи параметров
+                // Проверка организована только на уровне передачи параметров
                 // Для улучшения защиты указывайте типы аргументов функции
-                if(class_exists($paramType)) {
-                    $tmpFix = ClassHandler::detect($param, $value, $paramType, $convert);
-                    break;
+                if($originalParamType && class_exists($originalParamType)) {
+                                        
+                    $convertedType  = $paramType;
+                    $convertedValue = ClassHandler::detect($param, $value, $convert);
+                    
+                    if($convertedValue) {
+                        break;
+                    }
                 }
                 
                 throw AutoArgumentException::of($paramName, $paramType);
         }
         
-        // Специальный класс предназначений для
-        // типизации аргументов
-        if($classOfType !== null) {
-            if(class_exists($classOfType)) {
-                $tmpFix = new $classOfType(...$tmpFix);
-            } else {
-                throw AutoArgumentException::of($param->name, $defaultType);
-            }
+        // Значение определено
+        if($convertedType) {
+            return $convertedValue;
         }
         
-        $currectType = gettype($tmpFix);
-        
-        // Тип пустой
-        // Тип объект
-        // Тип совпал с подобранным
-        // Аргумент Variadic и тип массива подходит к данному типу
-        if(empty($defaultType)
-        || TypeManager::compareTypesFunc($defaultType, $currectType)
-        || (!$typeObj->isBuiltin() && $currectType == IType::TObject)
-        || ($param->isVariadic() && TypeManager::compareTypesFunc($defaultType, TypeManager::extractArrayTypeItem($type)))
-        ) {
-            return $tmpFix;
-        }
-        
-        throw AutoArgumentException::of($param->name, $defaultType);
+        throw AutoArgumentException::of($param->name, $paramType);
     }
     
     /**

@@ -1,12 +1,12 @@
 <?php
 
-namespace Look\Token\DB;
+namespace Look\API\Type\Token\DataBase;
 
-use Look\Token\IToken;
-use Look\Token\Container\TokenContainer;
-use Look\Token\Exceptions\BadTokenException;
-use Look\Token\DB\Exceptions\TokenDataBaseException;
-use Look\Token\DB\Exceptions\TokenDataBaseSecureException;
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\Container\TokenContainer;
+use Look\API\Type\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseException;
+use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseSecureException;
 
 use Look\Exceptions\InvalidArgumentException;
 

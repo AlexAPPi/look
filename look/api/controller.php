@@ -10,7 +10,7 @@ use Look\Exceptions\SystemLoginException;
 use Look\Exceptions\InvalidArgumentException;
 
 use Look\API\Exceptions\APIException;
-use Look\Token\Exceptions\TokenException;
+use Look\API\Type\Token\Exceptions\TokenException;
 
 use Look\API\Caller;
 use Look\Url\Builder as Url;

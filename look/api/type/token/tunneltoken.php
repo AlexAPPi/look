@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Token;
+namespace Look\API\Type\Token;
 
-use Look\Token\Container\TunnelTokenContainer;
+use Look\API\Type\Token\Container\TunnelTokenContainer;
 
 /**
  * Служит для безопасной передачи данных от клиента к сереру и наоборот

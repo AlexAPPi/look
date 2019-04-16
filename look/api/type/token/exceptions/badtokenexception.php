@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Token\Exceptions;
+namespace Look\API\Type\Token\Exceptions;
 
-use Look\Token\Exceptions\TokenException;
+use Look\API\Type\Token\Exceptions\TokenException;
 
 /**
  * Исключение связянное с плохим токеном

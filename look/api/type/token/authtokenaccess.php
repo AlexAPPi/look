@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Token;
+namespace Look\API\Type\Token;
 
-use Look\Token\Token;
+use Look\API\Type\Token\Token;
 
 /**
  * Токен, связанный с доступом к авторизации

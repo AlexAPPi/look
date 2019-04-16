@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Token;
+namespace Look\API\Type\Token;
 
-use Look\Token\DB\ITokenDataBase;
+use Look\API\Type\Token\DataBase\ITokenDataBase;
 
 /**
  * Объект токена

@@ -1,17 +1,17 @@
 <?php
 
-namespace Look\Token\DB;
+namespace Look\API\Type\Token\DataBase;
 
-use Look\Token\IToken;
-use Look\Token\Struct\TokenContainer;
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\Struct\TokenContainer;
 
 use Look\Crypt\RSA\PublicKey;
 use Look\Crypt\RSA\PrivateKey;
 use Look\Client\IP\Detector as IPDetector;
 
-use Look\Token\Exceptions\BadTokenException;
-use Look\Token\DB\Exceptions\TokenDataBaseException;
-use Look\Token\DB\Exceptions\TokenDataBaseSecureException;
+use Look\API\Type\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseException;
+use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseSecureException;
 
 use Look\Exceptions\InvalidArgumentException;
 

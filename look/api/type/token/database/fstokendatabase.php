@@ -1,15 +1,15 @@
 <?php
 
-namespace Look\Token\DB;
+namespace Look\API\Type\Token\DataBase;
 
-use Look\Token\IToken;
-use Look\Token\TokenContainer;
+use Look\API\Type\Token\IToken;
+use Look\API\Type\Token\TokenContainer;
 
-use Look\Token\DB\TokenDataBase;
-use Look\Token\DB\Exceptions\FSTokenDataBaseException;
-use Look\Token\DB\Exceptions\FSTokenDataBaseSecureException;
+use Look\API\Type\Token\DataBase\TokenDataBase;
+use Look\API\Type\Token\DataBase\Exceptions\FSTokenDataBaseException;
+use Look\API\Type\Token\DataBase\Exceptions\FSTokenDataBaseSecureException;
 
-use Look\Token\Exceptions\BadTokenException;
+use Look\API\Type\Token\Exceptions\BadTokenException;
 
 /**
  * Базовая файловая база данных токенов

@@ -9,7 +9,7 @@ use ReflectionParameter;
 use Look\Type\Converter;
 use Look\API\Controller as APIController;
 
-use Look\Token\IToken;
+use Look\API\Type\Token\IToken;
 
 use Look\API\Parser\Struct\ExtractableScalarObject as ExtractableScalarObjectStruct;
 use Look\API\Parser\Struct\ExtractableScalarArray as ExtractableScalarArrayStruct;
