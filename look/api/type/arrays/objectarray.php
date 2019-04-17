@@ -2,48 +2,51 @@
 
 namespace Look\API\Type\Arrays;
 
-use Look\API\Type\Interfaces\IScalarArray;
-use Look\API\Type\Exceptions\ArrayTypedException;
+use Look\API\Type\Interfaces\IArray;
 
 /**
- * Класс реализующий работу массива состоящего только из скалярных типов
+ * Класс реализующий работу массива
  */
-class ScalarArray extends ArrayWrap implements IScalarArray
-{    
+class ObjectArray extends ArrayWrap implements IArray
+{
+    /** Тип объекта */
+    const EvalItemType = self::TObject;
+    
+    /** @var array Массив */
+    protected $m_array = [];
+    
     /** {@inheritdoc} */
     final static function __extendsSystemType(): bool { return true; }
     
     /** {@inheritdoc} */
-    final static function __checkItemTypeIsInstance() : bool { return false; }
+    final static function __checkItemTypeIsInstance() : bool { return true; }
     
     /** {@inheritdoc} */
-    final static function __checkItemTypeIsScalar() : bool { return true; }
-
+    final static function __checkItemTypeIsScalar() : bool { return false; }
+    
     /** {@inheritdoc} */
     final static function __getSystemEvalType(): string { return self::TArray; }
     
     /** {@inheritdoc} */
-    static function __getEvalType(): string { return self::TScalarArray; }
+    static function __getEvalType(): string { return self::TArray; }
     
     /** {@inheritdoc} */
-    static function __getSystemItemType(): string { return self::TString; }
+    static function __getSystemItemType(): string { return self::EvalItemType; }
     
     /** {@inheritdoc} */
-    static function __getItemEvalType(): string { return self::TScalar; }
-    
-    /** {@inheritdoc} */
-    static function __getScalarItemType(): string { return self::TString; }
+    static function __getItemEvalType(): string { return static::EvalItemType; }
     
     /**
      * Базовый класс массива данных
      * 
+     * @param bool|integer|double|string $convert -> Парсинг строки
      * @param mixed $items   -> Передаваемые значения
      */
     public function __construct(...$items)
     {
         parent::__construct(...$items);
     }
-    
+
     /**
      * Присваивает значение заданному смещению (ключу)
      * 
@@ -52,7 +55,8 @@ class ScalarArray extends ArrayWrap implements IScalarArray
      */
     public function offsetSet($offset, $value)
     {
-        if(!is_scalar($value)) {
+        if(static::EvalItemType != self::TObject
+        && !is_subclass_of($value, static::EvalItemType)) {
             $this->errorOffsetSet($offset, $value);
         }
         

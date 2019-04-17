@@ -2,6 +2,8 @@
 
 namespace Look\API\Parser\TypeScript;
 
+use Look\API\Type\Interfaces\IType;
+
 use Look\API\Parser\Struct\Type;
 use Look\API\Parser\TypeScript\TSExporter;
 use Look\API\Parser\Exceptions\ParserException;
@@ -25,12 +27,12 @@ class TSType extends TSExporter
             {
                 switch($type->class)
                 {
-                    case 'object': return 'Object';
-                    case 'array':  return 'Array<any>';
-                    case 'int':    return 'number';
-                    case 'float':  return 'number';
-                    case 'string': return 'string';
-                    case 'bool':   return 'boolean';
+                    case IType::TObject:  return 'Object';
+                    case IType::TArray:   return 'Array<any>';
+                    case IType::TInteger: return 'number';
+                    case IType::TDouble:  return 'number';
+                    case IType::TString:  return 'string';
+                    case IType::TBool:    return 'boolean';
                     default: throw new ParserException("Тип [$type->class] не является скалярным типом");
                 }
             }

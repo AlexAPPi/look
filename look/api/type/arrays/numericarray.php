@@ -5,22 +5,20 @@ namespace Look\API\Type\Arrays;
 use Look\API\Type\TypeManager;
 
 /**
- * Базовый класс массива с хранением числового типа
+ * Базовый класс массива состоящего только из числел
  */
 class NumericArray extends ScalarArray
 {
     /** @var bool Конвертация из строки */
-    const CanSetString = true;
+    const CanSetString = false;
     
-    /**
-     * @see TypedArray
-     */
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         $original = $value;
         
         // Преобразуем строку в значение
-        if(is_string($value) && static::CanSetString) {
+        if(static::CanSetString && is_string($value)) {
             $value = TypeManager::strToNumeric($value);
         }
         
@@ -39,14 +37,14 @@ class NumericArray extends ScalarArray
     }
     
     /** {@inheritdoc} */
-    public function __getItemType(): string
-    {
-        return self::TNumeric;
-    }
+    static function __getEvalType(): string { return self::TNumericArray; }
     
     /** {@inheritdoc} */
-    public function __getScalarItemType(): string
-    {
-        return self::TFloat;
-    }
+    static function __getSystemItemType(): string { return self::TDouble; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TDouble; }
+    
+    /** {@inheritdoc} */
+    static function __getScalarItemType(): string { return self::TDouble; }
 }

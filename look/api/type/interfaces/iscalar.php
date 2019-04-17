@@ -2,18 +2,13 @@
 
 namespace Look\API\Type\Interfaces;
 
+use Look\API\Type\Exceptions\InvalidArgumentException;
+
 /**
  * Базовое представление переменной
  */
 interface IScalar extends IType
-{
-    /**
-     * Возвращает название скалярного типа из перечня IType
-     * 
-     * @return string
-     */
-    static function __getEvalType() : string;
-    
+{    
     /**
      * Преобразует объект в строку
      * @return string
@@ -25,6 +20,8 @@ interface IScalar extends IType
      * 
      * @param mixed $value -> Значение
      * @return void
+     * 
+     * @throw InvalidArgumentException
      */
     function setValue($value) : void;
     

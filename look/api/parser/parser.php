@@ -6,7 +6,10 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
 
-use Look\Type\Converter;
+use Look\API\Type\TypeManager;
+use Look\API\Type\Interfaces\IType;
+use Look\API\Type\Interfaces\IScalar;
+
 use Look\API\Controller as APIController;
 
 use Look\API\Type\Token\IToken;
@@ -32,24 +35,22 @@ class Parser
     public static function extractScalarObject(ReflectionClass $class) : ?ExtractableScalarObjectStruct
     {
         $className = $class->getName();
-        $itemTypeConst = $className.'::EvalType';
-        if(!defined($itemTypeConst)) {
-            throw ParserException("Нарушен принцип работы ::EvalType в $className");
-        }
-        $defaultType = constant($itemTypeConst);
-        $type        = Converter::getFixType($defaultType);
         
         // То что искали, объект является оберткой скалярного типа
-        if(Converter::isScalarType($type)) {
+        if(is_subclass_of($className, IScalar::class)) {
+            
+            // Функция возврата системного типа
+            $getScalarTypeFn = "$className::__getSystemEvalType";
+            
             $struct = new ExtractableScalarObjectStruct();
             $struct->namespace  = $class->getNamespaceName();
             $struct->class      = $class->getShortName();
-            $struct->scalarType = $type;
-            
+            $struct->scalarType = $getScalarTypeFn();
+
             if($comment = $class->getDocComment()) {
                 $struct->comment = new DocBlock($comment);
             }
-            
+
             return $struct;
         }
         
@@ -117,6 +118,8 @@ class Parser
         if(!class_exists($class)) {
             throw new ParserException("Класс [$class] объявленный типом для аргумента [$argName] не существует");
         }
+        
+        // TODO Список спец типов
         
         // Конструктор токена не может быть изменен
         // Особенности вызова смотрите в \Look\API\Caller
@@ -195,7 +198,7 @@ class Parser
             $typeName = (string)$type;
             
             // Скалярный тип
-            if($type->isBuiltin() || Converter::isScalarType($typeName)) {
+            if($type->isBuiltin() || TypeManager::isScalarType($typeName)) {
                 $typeStruct->class    = $typeName;
                 $typeStruct->isScalar = true;
                 return $typeStruct;
@@ -235,7 +238,7 @@ class Parser
             $detectedType  = null;
             $detectedValue = null;
             
-            if(Converter::detectBaseType($valueStruct->value, $detectedValue, $detectedType)) {
+            if(TypeManager::detectBaseType($valueStruct->value, $detectedValue, $detectedType)) {
                 $valueStruct->value = $detectedValue;
                 $valueStruct->type  = $detectedType;
             } else {

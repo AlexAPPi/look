@@ -6,7 +6,7 @@ namespace Look\API\Type\Interfaces;
  * Список скалярных типов
  */
 interface IType
-{
+{   
     /** Неопределенный тип */
     const TNULL = 'NULL';
 
@@ -42,7 +42,7 @@ interface IType
 
     /** Тип string */
     const TString = 'string';
-
+    
     /** Тип array */
     const TArray = 'array';
 
@@ -51,6 +51,15 @@ interface IType
 
     /** Массив из разных типов */
     const TMultiArray = self::TArray;
+    
+    /** Класс */
+    const TClass = 'class';
+    
+    /** Массив из классов */
+    const TClassArray = self::TClass . ' ' . self::TArray;
+    
+    /** Массив string */
+    const TStringArray = self::TString . ' ' . self::TArray;
     
     /** Массив bool (только из true|false) */
     const TBoolArray = self::TBool . ' ' . self::TArray;
@@ -73,11 +82,14 @@ interface IType
     /** Массив только из дробных положительных чисел */
     const TUnsignedDoubleArray = self::TUnsignedDouble . ' ' . self::TArray;
     
-    /** Не определенный тип данных */
-    const TMixed = 'mixed';
-    
     /** Скалярный тип */
     const TScalar = self::TNumeric . '|' . self::TBool . '|' . self::TString;
+    
+    /** Массив скалярных типов */
+    const TScalarArray = self::TScalar . ' ' . self::TArray;
+    
+    /** Не определенный тип данных */
+    const TMixed = 'mixed';
     
     /** Enum тип */
     const TEnum = 'enum';
@@ -86,14 +98,21 @@ interface IType
     const TIterable = 'iterable';
     
     /**
-     * Наследник системного типа PHP
+     * Наследник системного типа PHP (object, array, string, integer, double, ...)
      * 
      * @return bool
      */
     static function __extendsSystemType() : bool;
     
     /**
-     * Возвращает название системного скалярного типа
+     * Возвращает название тип в соответствии со стандартом ITYPE
+     *
+     * @return string
+     */
+    static function __getEvalType() : string;
+    
+    /**
+     * Возвращает название системного типа (object, array, string, integer, double, ...)
      *
      * @return string
      */

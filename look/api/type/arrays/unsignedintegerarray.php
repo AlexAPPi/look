@@ -1,49 +1,26 @@
 <?php
 
-namespace Look\Type;
+namespace Look\API\Type\Arrays;
 
-use Look\Type\Converter;
-use Look\Type\IntegerArray;
+use Look\API\Type\TypeManager;
 
 /**
- * Базовый класс массива с хранением integer типа
+ * Базовый класс массива состоящего только из положительных целых числел
  */
 class UnsignedIntegerArray extends IntegerArray
-{
-    /** @var string Тип подставки данных */
-    const ItemType = Converter::TUnsignedInteger;
-    
-    /** @var string Базовый тип объекта */
-    const EvalType = Converter::TUnsignedIntegerArray;
-    
-    /** @var bool Конвертация из строки */
-    const CanSetString = true;
-
-    /** @var bool Конвертация из значений с плавующей точкой */
-    const CanSetFloat = true;
-    
-    /**
-     * Базовый класс массива с хранением unsigned int типа
-     * @param int $items -> Элементы массива
-     */
-    public function __construct(int ...$items) {
-        parent::__construct(...$items);
-    }
-    
-    /**
-     * @see NumericArray
-     */
+{    
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         $original = $value;
         
         // Преобразуем строку в значение
         if(static::CanSetString && is_string($value)) {
-            $value = Converter::strToInt($value);
+            $value = TypeManager::strToInt($value);
         }
         
         // Преобразуем в целове число
-        if(static::CanSetFloat && is_double($value)) {
+        else if(static::CanSetFloat && is_double($value)) {
             $value = (int)$value;
         }
         
@@ -60,4 +37,10 @@ class UnsignedIntegerArray extends IntegerArray
 
         $this->errorOffsetSet($offset, $original);
     }
+    
+    /** {@inheritdoc} */
+    static function __getEvalType(): string { return self::TUnsignedIntegerArray; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TUnsignedInteger; }
 }

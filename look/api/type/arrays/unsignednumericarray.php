@@ -1,33 +1,21 @@
 <?php
 
-namespace Look\API\Type;
+namespace Look\API\Type\Arrays;
 
 use Look\API\Type\TypeManager;
-use Look\API\Type\NumericArray;
 
 /**
- * Базовый класс массива с хранением числового типа
+ * Базовый класс массива состоящего только из положительных числел
  */
 class UnsignedNumericArray extends NumericArray
 {
-    /** @var string Тип подставки данных */
-    const ItemType = TypeManager::TUnsignedNumeric;
-    
-    /** @var string Базовый тип объекта */
-    const EvalType = TypeManager::TUnsignedNumericArray;
-    
-    /** @var bool Конвертация из строки */
-    const CanSetString = true;
-    
-    /**
-     * @see MList
-     */
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         $original = $value;
         
         // Преобразуем строку в значение
-        if(is_string($value) && static::CanSetString) {
+        if(static::CanSetString && is_string($value)) {
             $value = TypeManager::strToNumeric($value);
         }
         
@@ -46,4 +34,10 @@ class UnsignedNumericArray extends NumericArray
 
         $this->errorOffsetSet($offset, $original);
     }
+    
+    /** {@inheritdoc} */
+    static function __getEvalType(): string { return self::TNumericArray; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TNumeric; }
 }

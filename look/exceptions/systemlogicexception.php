@@ -9,7 +9,7 @@ use Look\Exceptions\ILookException;
 /**
  * Базовый класс для всех исключений в системе.
  */
-class      SystemLoginException
+class      SystemLogicException
 extends    LogicException
 implements ILookException
 {

@@ -12,13 +12,9 @@ class TypeChecker
     /** @var array Буфер проверки типа */
     private static $classExistsBuf = [
         IType::TInteger  => true,
-        IType::TInteger2 => true,
         IType::TDouble   => true,
-        IType::TDouble2  => true,
         IType::TArray    => true,
-        IType::TBool2    => true,
-        IType::TBool     => true,
-        IType::TFloat    => true,
+        IType::TBool     => true
     ];
         
     /**

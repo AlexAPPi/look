@@ -1,8 +1,8 @@
 <?php
 
-namespace Look\Type;
+namespace Look\API\Type;
 
-use Look\Type\Exceptions\MailException;
+use Look\API\Type\Exceptions\MailException;
 
 /**
  * Класс для работы с Email

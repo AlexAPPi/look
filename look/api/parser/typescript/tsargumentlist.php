@@ -2,25 +2,24 @@
 
 namespace Look\API\Parser\TypeScript;
 
-use Look\Type\TypedArray;
-use Look\Type\Converter;
+use Iterator;
+use Countable;
+use ArrayAccess;
+use JsonSerializable;
+
 use Look\API\Parser\DocBlock;
 use Look\API\Parser\TypeScript\TSArgument;
 use Look\API\Parser\DocBlock\ParamDocBlock;
 
+use Look\API\Type\Arrays\ObjectArray;
+
 /**
  * Список аргументов
  */
-class TSArgumentList extends TypedArray
+class TSArgumentList extends ObjectArray
 {
-    /** @var string Базовый тип массива */
-    const EvalType = Converter::TArray;
-    
-    /** @var string Назание класса по умолчанию */
-    const DefaultItemType = Converter::TMixed;
-
-    /** @var string Тип подставки данных */
-    const ItemType = TSArgument::class;
+    /** Тип объекта */
+    const EvalItemType = TSArgument::class;
     
     protected $desc;
 
@@ -33,10 +32,7 @@ class TSArgumentList extends TypedArray
     public function __construct(?DocBlock $desc, TSArgument ...$items)
     {
         $this->desc = $desc;
-        
-        if($items) {
-            parent::__construct(...$items);
-        }
+        parent::__construct(...$items);
     }
     
     /**

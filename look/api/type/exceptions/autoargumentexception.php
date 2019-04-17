@@ -4,7 +4,7 @@ namespace Look\API\Type\Exceptions;
 
 use Throwable;
 use Look\API\Type\Interfaces\IType;
-use Look\Exceptions\SystemLoginException;
+use Look\Exceptions\SystemLogicException;
 
 /**
  * Возвращает исключение для указанного типа
@@ -22,7 +22,7 @@ final class AutoArgumentException
      * @param string $type      -> Строковое представление типа
      * @param string $exception -> Класс исключения
      * @return void
-     * @throws SystemLoginException
+     * @throws SystemLogicException
      */
     public static function addTypeException(string $type, string $exception) : void
     {
@@ -34,7 +34,7 @@ final class AutoArgumentException
             return;
         }
         
-        throw new SystemLoginException('exception must instanceof '. InvalidArgumentException::class);
+        throw new SystemLogicException('exception must instanceof '. InvalidArgumentException::class);
     }
     
     /**

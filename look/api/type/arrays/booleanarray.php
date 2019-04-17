@@ -2,10 +2,12 @@
 
 namespace Look\API\Type\Arrays;
 
+use Look\API\Type\TypeManager;
+
 /**
- * Базовый класс массива с хранением bool типа
+ * Базовый класс массива состоящего только из boolean
  */
-class BoolArray extends ScalarArray
+class BooleanArray extends ScalarArray
 {
     /**
      * Новый bool массив
@@ -13,7 +15,7 @@ class BoolArray extends ScalarArray
      */
     public function __construct(bool ...$items)
     {
-        parent::__construct($items);
+        parent::__construct(...$items);
     }
     
     /** {@inheritdoc} */
@@ -37,14 +39,14 @@ class BoolArray extends ScalarArray
     }
     
     /** {@inheritdoc} */
-    public function __getItemType(): string
-    {
-        return self::TBool;
-    }
+    static function __getEvalType(): string { return self::TBoolArray; }
     
     /** {@inheritdoc} */
-    public function __getScalarItemType(): string
-    {
-        return self::TBool;
-    }
+    static function __getSystemItemType(): string { return self::TBool; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TBool; }
+    
+    /** {@inheritdoc} */
+    static function __getScalarItemType(): string { return self::TBool; }
 }

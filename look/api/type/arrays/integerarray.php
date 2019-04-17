@@ -3,30 +3,28 @@
 namespace Look\API\Type\Arrays;
 
 use Look\API\Type\TypeManager;
-use Look\API\Type\Arrays\NumericArray;
 
 /**
- * Базовый класс массива с хранением integer типа
+ * Базовый класс массива состоящего только из целых числел
  */
 class IntegerArray extends NumericArray
 {
     /** @var bool Конвертация из строки */
-    const CanSetString = true;
+    const CanSetString = false;
 
     /** @var bool Конвертация из значений с плавующей точкой */
-    const CanSetFloat = true;
+    const CanSetFloat = false;
         
     /**
      * Базовый класс массива с хранением integer типа
      * @param int $items -> Элементы массива
      */
-    public function __construct(int ...$items) {
+    public function __construct(int ...$items)
+    {
         parent::__construct(...$items);
     }
     
-    /**
-     * @see NumericArray
-     */
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         $original = $value;
@@ -56,14 +54,14 @@ class IntegerArray extends NumericArray
     }
     
     /** {@inheritdoc} */
-    public function __getItemType(): string
-    {
-        return self::TInteger;
-    }
+    static function __getEvalType(): string { return self::TIntegerArray; }
     
     /** {@inheritdoc} */
-    public function __getScalarItemType(): string
-    {
-        return self::TInteger;
-    }
+    static function __getSystemItemType(): string { return self::TInteger; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TInteger; }
+    
+    /** {@inheritdoc} */
+    static function __getScalarItemType(): string { return self::TInteger; }
 }

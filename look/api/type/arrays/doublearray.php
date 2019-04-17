@@ -5,15 +5,15 @@ namespace Look\API\Type\Arrays;
 use Look\API\Type\TypeManager;
 
 /**
- * Базовый класс массива с хранением float типа
+ * Базовый класс массива состоящего только из числел с плавающей точкой
  */
 class DoubleArray extends NumericArray
 {
     /** @var bool Конвертация из строки */
-    const CanSetString = true;
+    const CanSetString = false;
 
     /** @var bool Конвертация из значений с плавующей точкой */
-    const CanSetInt = true;
+    const CanSetInt = false;
     
     /**
      * Новый float массив
@@ -21,12 +21,10 @@ class DoubleArray extends NumericArray
      */
     public function __construct(float ...$items)
     {
-        parent::__construct($items);
+        parent::__construct(...$items);
     }
     
-    /**
-     * @see NumericArray
-     */
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         // Преобразуем строку в значение
@@ -35,7 +33,7 @@ class DoubleArray extends NumericArray
         }
         
         // Преобразуем в целове число
-        if(static::CanSetInt && is_int($value)) {
+        else if(static::CanSetInt && is_int($value)) {
             $value = (double)$value;
         }
         
@@ -54,14 +52,14 @@ class DoubleArray extends NumericArray
     }
     
     /** {@inheritdoc} */
-    public function __getItemType(): string
-    {
-        return self::TFloat;
-    }
+    static function __getEvalType(): string { return self::TDoubleArray; }
     
     /** {@inheritdoc} */
-    public function __getScalarItemType(): string
-    {
-        return self::TFloat;
-    }
+    static function __getSystemItemType(): string { return self::TDouble; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TDouble; }
+    
+    /** {@inheritdoc} */
+    static function __getScalarItemType(): string { return self::TDouble; }
 }

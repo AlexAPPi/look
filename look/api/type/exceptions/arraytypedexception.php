@@ -3,6 +3,7 @@
 namespace Look\API\Type\Exceptions;
 
 use Look\API\Type\TypeManager;
+use Look\API\Type\Interfaces\IType;
 
 /**
  * Исключение, которое происходит при добавлении в массив объекта, тип который не совпадает с указанным
@@ -30,7 +31,7 @@ class ArrayTypedException extends ArrayErrorException
     {
         $valType = gettype($value);
         
-        if($valType == TypeManager::TObject) {
+        if($valType == IType::TObject) {
             $valType = get_class($value);
         }
         

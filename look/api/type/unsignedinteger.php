@@ -1,18 +1,16 @@
 <?php
 
-namespace Look\Type;
+namespace Look\API\Type;
 
-use Look\Type\Converter;
-use Look\Type\UnsignedNumeric;
-use Look\Type\Exceptions\UnsignedIntegerException;
+use Look\API\Type\Exceptions\UnsignedIntegerException;
 
 /**
- * Базовый класс не отрицательного числа
+ * Базовый класс не отрицательного целого числа
  */
 class UnsignedInteger extends UnsignedNumeric
 {
-    /** @var string Базовый тип массива */
-    const EvalType = Converter::TUnsignedInteger;
+    /** @var bool Конвертация из float */
+    const CanSetDouble = false;
     
     /**
      * Конструктор не отрицательного числа
@@ -30,12 +28,28 @@ class UnsignedInteger extends UnsignedNumeric
      * @see IValue
      * @throws UnsignedIntegerException -> Возникает при передаче отрицательного числа
      */
-    public function setValue($value)
+    public function setValue($value) : void
     {
+        // Преобразуем строку в значение
+        if(static::CanSetString && is_string($value)) {
+            $value = TypeManager::strToInt($value);
+        }
+        
+        // Передано значение double
+        else if(static::CanSetDouble && is_double($value)) {
+            $value = (int)$value;
+        }
+        
         if(!is_int($value) || $value < 0) {
             throw new UnsignedIntegerException('value');
         }
         
         $this->m_value = $value;
     }
+    
+    /** {@inheritdoc} */
+    public static function __getEvalType(): string { return self::TUnsignedInteger; }
+    
+    /** {@inheritdoc} */
+    public static function __getSystemEvalType() : string { return self::TInteger; }
 }

@@ -1,49 +1,26 @@
 <?php
 
-namespace Look\Type;
+namespace Look\API\Type\Arrays;
 
-use Look\Type\Converter;
-use Look\Type\NumericArray;
+use Look\API\Type\TypeManager;
 
 /**
- * Базовый класс массива с хранением float типа
+ * Базовый класс массива состоящего только из положительных числел с плавающей точкой
  */
-class UnsignedDoubleArray extends NumericArray
+class UnsignedDoubleArray extends DoubleArray
 {
-    /** @var string Тип подставки данных */
-    const ItemType = Converter::TUnsignedDouble;
-    
-    /** @var string Базовый тип объекта */
-    const EvalType = Converter::TUnsignedDoubleArray;
-    
-    /** @var bool Конвертация из строки */
-    const CanSetString = true;
-
-    /** @var bool Конвертация из значений с плавующей точкой */
-    const CanSetInt = true;
-    
-    /**
-     * Базовый класс массива с хранением unsigned float типа
-     * @param int $items -> Элементы массива
-     */
-    public function __construct(float ...$items) {
-        parent::__construct(...$items);
-    }
-    
-    /**
-     * @see NumericArray
-     */
+    /** {@inheritdoc} */
     public function offsetSet($offset, $value)
     {
         $original = $value;
         
         // Преобразуем строку в значение
         if(static::CanSetString && is_string($value)) {
-            $value = Converter::strToDouble($value);
+            $value = TypeManager::strToDouble($value);
         }
         
         // Преобразуем в целове число
-        if(static::CanSetInt && is_int($value)) {
+        else if(static::CanSetInt && is_int($value)) {
             $value = (double)$value;
         }
         
@@ -60,4 +37,10 @@ class UnsignedDoubleArray extends NumericArray
 
         $this->errorOffsetSet($offset, $original);
     }
+    
+    /** {@inheritdoc} */
+    static function __getEvalType(): string { return self::TUnsignedDoubleArray; }
+    
+    /** {@inheritdoc} */
+    static function __getItemEvalType(): string { return self::TUnsignedDouble; }
 }

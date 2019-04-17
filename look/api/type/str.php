@@ -15,10 +15,13 @@ class Str implements IScalar
     protected $value;
     
     /** {@inheritdoc} */
-    public static function __extendsSystemType(): bool { return self::TString; }
+    public static function __extendsSystemType(): bool { return true; }
     
     /** {@inheritdoc} */
     public static function __getSystemEvalType(): string { return self::TString; }
+    
+    /** {@inheritdoc} */
+    public static function __getEvalType(): string { return self::TString; }
     
     /**
      * Конструктор строки
@@ -279,12 +282,6 @@ class Str implements IScalar
         return mb_strlen($this->value);
     }
     
-    /** {@inheritdoc} */
-    public static function __getEvalType(): string
-    {
-        return self::TString;
-    }
-
     /** {@inheritdoc} */
     public function setValue($value) : void
     {

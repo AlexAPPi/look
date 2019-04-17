@@ -49,8 +49,60 @@ final class TypeManager
         IType::TBool,
         IType::TInteger,
         IType::TDouble,
-        IType::TString
+        IType::TString,
+        IType::TUnsignedDouble,
+        IType::TUnsignedInteger,
+        IType::TUnsignedNumeric,
+        IType::TScalar
     ];
+        
+    /**
+     * Преобразует тип параметра к типу стандарта IType
+     * @param ReflectionParameter $param -> Объект параметра
+     * @return string
+     */
+    public static function argTypeToITypeStandart(ReflectionParameter $param) : string
+    {
+        if($param->hasType()) {
+            
+            $type = (string)$param->getType();
+            
+            switch($type) {
+                case 'int'   :    return IType::TInteger;
+                case 'float' :    return IType::TDouble;
+                case 'bool'  :    return IType::TBool;
+                case 'array':     return IType::TArray;
+                case 'string' :   return IType::TString;
+                case 'object' :   return IType::TObject;
+                case 'iterable' : return IType::TIterable;
+                case 'callable' : return IType::TCallable;
+                default : break;
+            }
+            
+            $isClass = class_exists($type);
+            
+            if($isClass) {
+                
+                // Класс наследует типизацию стандарта IType
+                if(is_subclass_of($type, IType::class)) {
+                    
+                    // Список
+                    if($param->isVariadic()) {
+                        return IType::TClassArray;
+                    }
+                    
+                    $fn = "$type::__getEvalType";
+                    return $fn();
+                }
+                
+                return IType::TObject;
+            }
+            
+            throw new APIStandartException("Стандарт API обработки не позволяет использовать тип [$type]");
+        }
+        
+        return IType::TMixed;
+    }
     
     /**
      * Проверяет является ли данный тип скалярным
@@ -917,22 +969,22 @@ final class TypeManager
                 
                 return null;
             }
-
+            
             switch ($outType) {
-
+                
                 case IType::TBool:
                     
                     $int      = false;
                     $double   = false;
                     $unsigned = false;
-                    
+                                        
                 break;
-            
-                case IType::TDouble:  $int    = false; 
-                case IType::TInteger: $double = false;
-
+                
                 case IType::TInteger:
                 case IType::TDouble:
+                    
+                    if($outType == IType::TDouble)  $int    = false;
+                    if($outType == IType::TInteger) $double = false;
                     
                     $bool = false;
                     
@@ -948,7 +1000,7 @@ final class TypeManager
 
             $tmp[$key] = $outVal; 
         }
-
+        
         // Обновляем массив
         $out = $tmp;
 

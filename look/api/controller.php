@@ -6,7 +6,7 @@ use Throwable;
 use Exception;
 
 use Look\Exceptions\SystemException;
-use Look\Exceptions\SystemLoginException;
+use Look\Exceptions\SystemLogicException;
 use Look\Exceptions\InvalidArgumentException;
 
 use Look\API\Exceptions\APIException;
@@ -441,7 +441,7 @@ final class Controller
         {
             static::returnError($ex, $ex->getCode(), $ex->getMessage());
         }
-        catch (SystemException|SystemLoginException $ex)
+        catch (SystemException|SystemLogicException $ex)
         {
             static::returnError($ex, $ex->getCode(), 'system error');
         }

@@ -9,6 +9,7 @@ interface IScalarArray extends IArray
 {
     /**
      * Скалярный тип элемента (bool, string, integer, double, ...)
+     * в соответствии со стандартом PHP
      * 
      * @return string
      */

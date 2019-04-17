@@ -2,8 +2,9 @@
 
 namespace Look;
 
+use Throwable;
 use Look\API\Type\Interfaces\IType;
-use Look\Exceptions\SystemLoginException;
+use Look\Exceptions\SystemLogicException;
 
 /**
  * Базовый класс менеджера загрузки классов

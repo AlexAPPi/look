@@ -30,7 +30,7 @@ interface IArray extends ArrayAccess, JsonSerializable, Countable, Iterator, ITy
      * Проверяет, является ли элемент массива объектом класса
      * @return bool
      */
-    static function __checkItemTypeIsClass() : bool;
+    static function __checkItemTypeIsInstance() : bool;
     
     /**
      * Проверяет, является ли элемент массива скалярным типом
@@ -39,9 +39,16 @@ interface IArray extends ArrayAccess, JsonSerializable, Countable, Iterator, ITy
     static function __checkItemTypeIsScalar() : bool;
     
     /**
-     * Возвращаемый тип элемента
+     * Возвращает название типа элемента массива в соответствии со стандартом ITYPE
+     *
+     * @return string
+     */
+    static function __getItemEvalType() : string;
+    
+    /**
+     * Возвращаемый тип элемента в соответствии со стандартом PHP
      * 
      * @return string
      */
-    static function __getItemType() : string;
+    static function __getSystemItemType() : string;
 }

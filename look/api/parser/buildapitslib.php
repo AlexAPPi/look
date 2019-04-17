@@ -2,7 +2,7 @@
 
 namespace Look\API\Parser;
 
-use Look\Type\Converter;
+use Look\API\Type\TypeManager;
 use Look\API\Controller as APIController;
 
 use Look\API\Parser\Parser;
