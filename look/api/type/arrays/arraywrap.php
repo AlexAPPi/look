@@ -3,6 +3,7 @@
 namespace Look\API\Type\Arrays;
 
 use Look\API\Type\Interfaces\IArray;
+use Look\API\Type\Exceptions\ArrayTypedException;
 
 /**
  * Обертка для массива

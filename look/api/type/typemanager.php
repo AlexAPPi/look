@@ -4,6 +4,8 @@ namespace Look\API\Type;
 
 use ReflectionParameter;
 use Look\API\Type\Interfaces\IType;
+use Look\API\Type\Interfaces\IScalar;
+use Look\API\Type\Interfaces\IScalarArray;
 
 /**
  * Класс предназначения для работы со скалярными типами данных:
@@ -50,6 +52,7 @@ final class TypeManager
         IType::TInteger,
         IType::TDouble,
         IType::TString,
+        IType::TNumeric,
         IType::TUnsignedDouble,
         IType::TUnsignedInteger,
         IType::TUnsignedNumeric,
@@ -65,37 +68,70 @@ final class TypeManager
     {
         if($param->hasType()) {
             
-            $type = (string)$param->getType();
+            $type         = (string)$param->getType();
+            $paramBuiltin = $param->getType()->isBuiltin();
+            $isClass      = !$paramBuiltin && class_exists($type);
             
-            switch($type) {
-                case 'int'   :    return IType::TInteger;
-                case 'float' :    return IType::TDouble;
-                case 'bool'  :    return IType::TBool;
-                case 'array':     return IType::TArray;
-                case 'string' :   return IType::TString;
-                case 'object' :   return IType::TObject;
-                case 'iterable' : return IType::TIterable;
-                case 'callable' : return IType::TCallable;
-                default : break;
+            // Т.к в систему типизации заложены такие понятия,
+            // как обертка для скалярного типа,
+            // обертка массива со скалярными типами
+            // После обработки значений создаем экземпляры данных классов
+            
+            if($paramBuiltin) {
+                
+                if($param->isVariadic()) {
+                    
+                    switch($type) {
+
+                        case 'int' :    $paramType = IType::TIntegerArray; break;
+                        case 'float' :  $paramType = IType::TDoubleArray;  break;
+                        case 'bool'  :  $paramType = IType::TBoolArray;    break;
+                        case 'string' : $paramType = IType::TStringArray;  break;
+                        default: break;
+                    }
+
+                    throw new APIStandartException("Стандарт API обработки не позволяет использовать тип [$type] c variadic методом передачи параметра");
+                }
+                
+                switch($type) {
+                    case 'int'   :    return IType::TInteger;
+                    case 'float' :    return IType::TDouble;
+                    case 'bool'  :    return IType::TBool;
+                    case 'array':     return IType::TArray;
+                    case 'string' :   return IType::TString;
+                    case 'object' :   return IType::TObject;
+                    case 'iterable' : return IType::TIterable;
+                    case 'callable' : return IType::TCallable;
+                    default : break;
+                }
             }
-            
-            $isClass = class_exists($type);
             
             if($isClass) {
                 
                 // Класс наследует типизацию стандарта IType
                 if(is_subclass_of($type, IType::class)) {
                     
-                    // Список
-                    if($param->isVariadic()) {
-                        return IType::TClassArray;
+                    $fn         = "$type::__getEvalType";
+                    $scalarType = $fn();
+                    
+                    // Значение является скалярным
+                    if(is_subclass_of($type, IScalar::class)) {
+                        
+                        if($param->isVariadic()) {
+                            return static::getArrayTypeFor($scalarType);
+                        }
+                        
+                        return $scalarType;
                     }
                     
-                    $fn = "$type::__getEvalType";
-                    return $fn();
+                    // Передан скалярный массив
+                    if(!$param->isVariadic()
+                    && is_subclass_of($isClass, IScalarArray::class)) {
+                        return $scalarType;
+                    }
                 }
                 
-                return IType::TObject;
+                return $param->isVariadic() ? IType::TClassArray : IType::TClass;
             }
             
             throw new APIStandartException("Стандарт API обработки не позволяет использовать тип [$type]");
@@ -120,7 +156,7 @@ final class TypeManager
      */
     public static function getArrayTypeFor(string $type) : string
     {
-        return $type . ' ' . static::TArray;
+        return $type . ' ' . IType::TArray;
     }
     
     /**

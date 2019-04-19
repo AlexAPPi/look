@@ -3,7 +3,6 @@
 namespace Look\API\Type\Arrays;
 
 use Look\API\Type\Interfaces\IScalarArray;
-use Look\API\Type\Exceptions\ArrayTypedException;
 
 /**
  * Класс реализующий работу массива состоящего только из скалярных типов
@@ -13,12 +12,6 @@ class ScalarArray extends ArrayWrap implements IScalarArray
     /** {@inheritdoc} */
     final static function __extendsSystemType(): bool { return true; }
     
-    /** {@inheritdoc} */
-    final static function __checkItemTypeIsInstance() : bool { return false; }
-    
-    /** {@inheritdoc} */
-    final static function __checkItemTypeIsScalar() : bool { return true; }
-
     /** {@inheritdoc} */
     final static function __getSystemEvalType(): string { return self::TArray; }
     

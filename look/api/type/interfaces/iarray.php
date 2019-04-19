@@ -25,19 +25,7 @@ interface IArray extends ArrayAccess, JsonSerializable, Countable, Iterator, ITy
      * @return array
      */
     function __toString() : string;
-    
-    /**
-     * Проверяет, является ли элемент массива объектом класса
-     * @return bool
-     */
-    static function __checkItemTypeIsInstance() : bool;
-    
-    /**
-     * Проверяет, является ли элемент массива скалярным типом
-     * @return bool
-     */
-    static function __checkItemTypeIsScalar() : bool;
-    
+        
     /**
      * Возвращает название типа элемента массива в соответствии со стандартом ITYPE
      *

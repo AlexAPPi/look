@@ -7,7 +7,7 @@ use Look\API\Type\Token\Container\TokenContainer;
 /**
  * Служит для подтерждения полномочий, которыми наделен пользователь
  */
-class Token extends TokenContainer
+class SimpleToken extends TokenContainer
 {
     /** @see TokenContainer::checkPermissions */
     const necessaryPermits = [];

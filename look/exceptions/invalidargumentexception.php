@@ -58,5 +58,14 @@ implements ILookException
     {
         return static::argumentErrMessage;
     }
+    
+    /**
+     * Возвращает сообщение
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return parent::__toString();
+    }
 }
 

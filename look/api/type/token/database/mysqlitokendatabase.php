@@ -191,7 +191,7 @@ class MySQLiTokenDataBase extends TokenDataBase
         $startTimeSql = microtime(true);
         $result       = $this->mysqli->query($sql);
         $timeSql      = microtime(true) - $startTimeSql;
-        
+                
         return $result;
     }
     

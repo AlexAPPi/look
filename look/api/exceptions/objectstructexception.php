@@ -3,14 +3,14 @@
 namespace Look\API\Exceptions;
 
 use Throwable;
-use Look\Exceptions\InvalidArgumentException;
+use Look\API\Type\Exceptions\InvalidArgumentException;
 
 /**
  * Исключение связанное с нарушением структуры объекта
  */
 class ObjectStructException extends InvalidArgumentException
 {
-    const argumentErrMessage = 'object struct bad';
+    const argumentErrMessage = 'must be an object';
     
     const format = '(typeof %type)%name->';
     
@@ -36,6 +36,12 @@ class ObjectStructException extends InvalidArgumentException
         return $this->objectType;
     }
     
+    /** {@inheritdoc} */
+    public function __toString() : string
+    {
+        return $this->buildMessage();
+    }
+    
     /**
      * Формирует сообщение с полной цепочкой ошибки
      * @return string
@@ -51,8 +57,8 @@ class ObjectStructException extends InvalidArgumentException
                 $count++;
                 $names[] = $el->getArgumentName();
                 $types[] = $el->getArgumentErrMessage();
-                $prev = $el->getPrevious();
-                $el = $prev;
+                $prev    = $el->getPrevious();             
+                $el      = $prev;
             } else {
                 break;
             }

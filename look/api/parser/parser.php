@@ -9,10 +9,14 @@ use ReflectionParameter;
 use Look\API\Type\TypeManager;
 use Look\API\Type\Interfaces\IType;
 use Look\API\Type\Interfaces\IScalar;
+use Look\API\Type\Interfaces\IScalarArray;
 
 use Look\API\Controller as APIController;
 
+use Look\API\Type\Enum;
 use Look\API\Type\Token\IToken;
+
+use Look\API\Parser\Exceptions\ParserException;
 
 use Look\API\Parser\Struct\ExtractableScalarObject as ExtractableScalarObjectStruct;
 use Look\API\Parser\Struct\ExtractableScalarArray as ExtractableScalarArrayStruct;
@@ -23,56 +27,42 @@ use Look\API\Parser\Struct\Method as MethodStruct;
 use Look\API\Parser\Struct\Value as ValueStruct;
 use Look\API\Parser\Struct\Type as TypeStruct;
 
-use Look\Type\Interfaces\IValue;
-use Look\Type\Interfaces\IArray;
-use Look\API\Parser\Exceptions\ParserException;
-
 /**
  * Собирает структуру
  */
 class Parser
 {
-    public static function extractScalarObject(ReflectionClass $class) : ?ExtractableScalarObjectStruct
+    private static function extractScalarObject(ReflectionClass $class) : ?ExtractableScalarObjectStruct
     {
-        $className = $class->getName();
-        
-        // То что искали, объект является оберткой скалярного типа
-        if(is_subclass_of($className, IScalar::class)) {
-            
-            // Функция возврата системного типа
-            $getScalarTypeFn = "$className::__getSystemEvalType";
-            
-            $struct = new ExtractableScalarObjectStruct();
-            $struct->namespace  = $class->getNamespaceName();
-            $struct->class      = $class->getShortName();
-            $struct->scalarType = $getScalarTypeFn();
+        $className       = $class->getName();
+        $getScalarTypeFn = "$className::__getEvalType";
 
-            if($comment = $class->getDocComment()) {
-                $struct->comment = new DocBlock($comment);
-            }
+        $struct = new ExtractableScalarObjectStruct();
+        $struct->namespace  = $class->getNamespaceName();
+        $struct->class      = $class->getShortName();
+        $struct->scalarType = $getScalarTypeFn();
 
-            return $struct;
+        if($comment = $class->getDocComment()) {
+            $struct->comment = new DocBlock($comment);
         }
-        
-        return null;
+
+        return $struct;
     }
 
-    public static function extractScalarArray(ReflectionClass $class) : ?ExtractableScalarArrayStruct
+    private static function extractScalarArray(ReflectionClass $class) : ?ExtractableScalarArrayStruct
     {
         $className = $class->getName();
-        $itemTypeConst = $className.'::ItemType';
-        if(!defined($itemTypeConst)) {
-            throw ParserException("Нарушен принцип работы ::ItemType в $className");
-        }
-        $defaultType = constant($itemTypeConst);
-        $type        = Converter::getFixType($defaultType);
+        $fn = "$className::__getEvalType";
+        $itypeType     = $fn();
+        $itypeItemType = TypeManager::extractArrayTypeItem($itypeType);
         
         // То что искали, массив являестя скалярным
-        if(Converter::isScalarType($type)) {
+        if(TypeManager::isScalarType($itypeItemType)) {
+            
             $struct = new ExtractableScalarArrayStruct();
             $struct->namespace  = $class->getNamespaceName();
             $struct->arrayClass = $class->getShortName();
-            $struct->scalarType = $type;
+            $struct->scalarType = $itypeItemType;
             
             if($comment = $class->getDocComment()) {
                 $struct->comment = new DocBlock($comment);
@@ -81,29 +71,7 @@ class Parser
             return $struct;
         }
         
-        // Проверяем, мб элементы массива являются оберткой скалярного типа        
-        if(is_subclass_of($type, IValue::class)) {
-            
-            $itemStruct = static::extractScalarObject(
-                new ReflectionClass($type)
-            );
-            
-            if($itemStruct) {
-            
-                $struct = new ExtractableScalarArrayStruct();
-                $struct->namespace  = $class->getNamespaceName();
-                $struct->arrayClass = $class->getShortName();
-                $struct->scalarType = $itemStruct->scalarType;
-                
-                if($comment = $class->getDocComment()) {
-                    $struct->comment = new DocBlock($comment);
-                }
-                
-                return $struct;
-            }
-        }
-        
-        return null;
+        throw new ParserException("Нарушен принцип работы IScalarArray в [$className]");
     }
 
     public static function parseNotScalarType(ReflectionParameter $argument)
@@ -127,6 +95,10 @@ class Parser
             return $class;
         }
         
+        if(is_subclass_of($class, Enum::class)) {
+            return $class;
+        }
+        
         $reflectionClass = new ReflectionClass($class);
         
         if(!$reflectionClass
@@ -136,7 +108,17 @@ class Parser
         || $reflectionClass->isAnonymous()) {
             throw new ParserException("Тип [$class] объявленный для аргумента [$argName] должен быть классом");
         }
-                
+        
+        // Скалярный массив
+        if(is_subclass_of($class, IScalarArray::class)) {
+            return self::extractScalarArray($reflectionClass);
+        }
+        
+        // Обертка скалярного типа
+        if(is_subclass_of($class, IScalar::class)) {
+            return self::extractScalarObject($reflectionClass);
+        }
+        
         // Т.к классы типа IArray, IValue и т.п используются для кучкования данных
         // Выполним обратную разборку данных
         $reflectionConstructor = $reflectionClass->getConstructor();
@@ -144,33 +126,7 @@ class Parser
         if(!$reflectionConstructor) {
             throw new ParserException("Не удалось получить функцию констурктора класса [$class]");
         }
-        
-        $isArray = is_subclass_of($class, IArray::class);
-        
-        // Если данный объект является массивом со скалярным типом
-        // Извлекаем скалярный тип и подменяем 
-        if($isArray) {
-            
-            $struct = self::extractScalarArray($reflectionClass);
-            
-            if($struct) {
-                return $struct;
-            }
-        }
-        
-        $isValue = is_subclass_of($class, IValue::class);
-        
-        // Если данный объект является оберткой для скалярного типа
-        // Извлекаем скалярный тип и подменяем
-        if($isValue && !$isArray) {
-            
-            $struct = self::extractScalarObject($reflectionClass);
-            
-            if($struct) {
-                return $struct;
-            }
-        }
-        
+                
         $struct = new ArgumentClassStruct();
         $struct->namespace   = $reflectionClass->getNamespaceName();
         $struct->name        = $reflectionClass->getShortName();
@@ -190,16 +146,14 @@ class Parser
      */
     public static function parseArgumentType(ReflectionParameter $argument) : ?TypeStruct
     {
-        if($argument->hasType())
-        {
-            $typeStruct = new TypeStruct();
+        if($argument->hasType()) {
             
-            $type     = $argument->getType();
-            $typeName = (string)$type;
+            $typeStruct = new TypeStruct();
+            $type       = $argument->getType();
             
             // Скалярный тип
-            if($type->isBuiltin() || TypeManager::isScalarType($typeName)) {
-                $typeStruct->class    = $typeName;
+            if($type->isBuiltin()) {
+                $typeStruct->class    = TypeManager::argTypeToITypeStandart($argument);
                 $typeStruct->isScalar = true;
                 return $typeStruct;
             }

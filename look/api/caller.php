@@ -3,6 +3,7 @@
 namespace Look\API;
 
 use Closure;
+use TypeError;
 use ReflectionMethod;
 use ReflectionFunction;
 use ReflectionParameter;
@@ -222,7 +223,7 @@ class Caller
      * @return mixed
      */
     public static function defaultHandler(ReflectionParameter $param, string $type, $value,  bool $convert)
-    {
+    {        
         return Caller::getFixArgsForClassFunc(
             $type,
             static::ClassConstructorMethod,
@@ -244,60 +245,15 @@ class Caller
      * @throws ParametrException
      */
     private static function getArgFixValue(ReflectionParameter $param, $value, bool $convert = true)
-    {        
-        $paramName = $param->name;
-        $paramType = TypeManager::argTypeToITypeStandart($param);
-        $paramBuiltin = $param->hasType() && $param->getType()->isBuiltin();
+    {
         $originalParamType = $param->hasType() ? (string)$param->getType() : null;
-        
-        if(!$paramBuiltin) {
-        
-            // Проверка токена
-            $token = static::checkArgOfToken($param, $originalParamType, $value);
-            if($token) {
-                return $token;
-            }
-            
-            // Проверка Enum
-            $enum = static::checkArgOfEnum($param, $originalParamType, $value);
-            if($enum) {
-                return $enum;
-            }
-            
-            // Если передан объект, то сразу сравниваем тип
-            if(is_object($value)) {
+        $paramName         = $param->name;
+        $paramType         = TypeManager::argTypeToITypeStandart($param);
+        $paramBuiltin      = $param->hasType() && $param->getType()->isBuiltin();
 
-                // Проверяем объект на соответствие
-                if($value instanceof $originalParamType) {
-                    return $value;
-                }
-
-                throw AutoArgumentException::of($param->name, $originalParamType);
-            }
-        }
-        
         $convertedType  = null;
         $convertedValue = null;
-        
-        // Т.к в систему типизации заложены такие понятия,
-        // как обертка для скалярного типа,
-        // обертка массива со скалярными типами
-        // После обработки значений создаем экземпляры данных классов
-        
-        if($param->isVariadic()) {
-            
-            switch($originalParamType) {
                 
-                case 'int' :    $paramType = IType::TIntegerArray; break;
-                case 'float' :  $paramType = IType::TDoubleArray;  break;
-                case 'bool'  :  $paramType = IType::TBoolArray;    break;
-                case 'string' : $paramType = IType::TStringArray;  break;
-                
-                default: break;
-                //default : throw new APIStandartException("Стандарт API обработки не позволяет использовать тип [$originalParamType] c variadic методом передачи параметра");
-            }
-        }
-        
         echo "$paramName | $paramType | $paramBuiltin | $originalParamType" . PHP_EOL;
         
         switch($paramType) {
@@ -434,6 +390,37 @@ class Caller
                 if(!$paramBuiltin
                 && class_exists($originalParamType)) {
                     
+                    ////////////////////////////////////////////////////////////
+                    ////////////////////////////////////////////////////////////
+                    ////////////////////////////////////////////////////////////
+                    
+                    // Проверка токена
+                    $token = static::checkArgOfToken($param, $originalParamType, $value);
+                    if($token) {
+                        return $token;
+                    }
+
+                    // Проверка Enum
+                    $enum = static::checkArgOfEnum($param, $originalParamType, $value);
+                    if($enum) {
+                        return $enum;
+                    }
+
+                    // Если передан объект, то сразу сравниваем тип
+                    if(is_object($value)) {
+
+                        // Проверяем объект на соответствие
+                        if($value instanceof $originalParamType) {
+                            return $value;
+                        }
+
+                        throw AutoArgumentException::of($param->name, $originalParamType);
+                    }
+                    
+                    ////////////////////////////////////////////////////////////
+                    ////////////////////////////////////////////////////////////
+                    ////////////////////////////////////////////////////////////
+                    
                     try {
                     
                         if(isset(static::$handlers[$originalParamType])) {
@@ -474,9 +461,9 @@ class Caller
                         $convertedValue = new $originalParamType(...$fixArgs);
                         break;
                         
-                    } catch (InvalidArgumentException $ex) {
-                        $errMessage = constant("$ex::argumentErrMessage");
-                        throw new ObjectStructException($param->name, $errMessage, $ex->getCode(), $ex);
+                    } catch (TypeError|InvalidArgumentException $ex) {
+                        $fixType = DEBUG ? $originalParamType : $paramType;
+                        throw new ObjectStructException($param->name, $fixType, $ex->getCode(), $ex);
                     }
                 }
                 

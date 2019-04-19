@@ -2,9 +2,6 @@
 
 namespace Look\API\Parser;
 
-use Look\API\Type\TypeManager;
-use Look\API\Controller as APIController;
-
 use Look\API\Parser\Parser;
 use Look\API\Parser\Exceptions\ParserException;
 

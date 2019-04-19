@@ -2,12 +2,12 @@
 
 namespace Look\API\Type\Arrays;
 
-use Look\API\Type\Interfaces\IArray;
+use Look\API\Type\Interfaces\IMixedArray;
 
 /**
  * Класс реализующий работу массива
  */
-class ObjectArray extends ArrayWrap implements IArray
+class ObjectArray extends ArrayWrap implements IMixedArray
 {
     /** Тип объекта */
     const EvalItemType = self::TObject;
@@ -55,8 +55,10 @@ class ObjectArray extends ArrayWrap implements IArray
      */
     public function offsetSet($offset, $value)
     {
+        // Если указан точный тип, проверим его
         if(static::EvalItemType != self::TObject
-        && !is_subclass_of($value, static::EvalItemType)) {
+        && (get_class($value) != static::EvalItemType
+        && !is_subclass_of($value, static::EvalItemType))) {
             $this->errorOffsetSet($offset, $value);
         }
         

@@ -2,11 +2,15 @@
 
 namespace Look\API\Parser\TypeScript;
 
+use Look\API\Type\TypeManager;
 use Look\API\Type\Interfaces\IType;
 
 use Look\API\Parser\Struct\Type;
 use Look\API\Parser\TypeScript\TSExporter;
 use Look\API\Parser\Exceptions\ParserException;
+
+use Look\API\Parser\Struct\ExtractableScalarArray;
+use Look\API\Parser\Struct\ExtractableScalarObject;
 
 class TSType extends TSExporter
 {
@@ -17,29 +21,82 @@ class TSType extends TSExporter
         $this->type = $type;
     }
     
+    /**
+     * Возвращает тип TS соответствующий IType стандарту
+     * @param string $name
+     */
+    protected function getTSTypeForITypeStanart(string $name) : string
+    {
+        switch($name)
+        {
+            case IType::TMixed:  return 'any';
+            case IType::TObject: return 'Object';
+            case IType::TArray:  return 'Array<any>';
+            case IType::TBool:   return 'boolean';
+            
+            case IType::TScalar:
+            case IType::TString: return 'string';
+            
+            case IType::TNumeric:
+            case IType::TInteger:
+            case IType::TDouble:
+            case IType::TUnsignedNumeric:
+            case IType::TUnsignedInteger:
+            case IType::TUnsignedDouble: return 'number';
+            
+            case IType::TStringArray:
+            case IType::TScalarArray:  return 'Array<string>';
+                
+            case IType::TBoolArray:    return 'Array<boolean>';
+            
+            case IType::TNumericArray:
+            case IType::TIntegerArray:
+            case IType::TDoubleArray:
+            case IType::TUnsignedNumericArray:
+            case IType::TUnsignedIntegerArray:
+            case IType::TUnsignedDoubleArray: return 'Array<number>';
+            
+            default : return null;
+        }
+    }
+
+
     /** {@inheritdoc} */
     protected function buildTS(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : string
     {
         $type = $this->type;
-        if($type instanceof Type)
-        {
-            if($type->isScalar)
-            {
-                switch($type->class)
-                {
-                    case IType::TObject:  return 'Object';
-                    case IType::TArray:   return 'Array<any>';
-                    case IType::TInteger: return 'number';
-                    case IType::TDouble:  return 'number';
-                    case IType::TString:  return 'string';
-                    case IType::TBool:    return 'boolean';
-                    default: throw new ParserException("Тип [$type->class] не является скалярным типом");
+        
+        if($type instanceof Type) {
+            
+            if($type->isScalar) {
+                
+                $fixType = $this->getTSTypeForITypeStanart($type->class);
+                if($fixType === null) {
+                    throw new ParserException("Тип [$type->class] не является скалярным типом");
                 }
+                return $fixType;
             }
-            else
-            {
+            else {
+                
                 if(is_string($type->class)) {
                     return 'string';
+                }
+                
+                if($type->class instanceof ExtractableScalarObject) {
+                    $fixType = $this->getTSTypeForITypeStanart($type->class->scalarType);
+                    if($fixType === null) {
+                        throw new ParserException("Тип [$type->class] не является скалярным типом");
+                    }
+                    return $fixType;
+                }
+                
+                if($type->class instanceof ExtractableScalarArray) {
+                    $arrType = TypeManager::getArrayTypeFor($type->class->scalarType);
+                    $fixType = $this->getTSTypeForITypeStanart($arrType);
+                    if($fixType === null) {
+                        throw new ParserException("Тип [$type->class] не является массивом состоящим из скалярных типом");
+                    }
+                    return $fixType;
                 }
                 
                 $fixNameSpace = str_replace('\\', '.', $type->class->namespace);
