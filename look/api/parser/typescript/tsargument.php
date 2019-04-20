@@ -40,6 +40,15 @@ class TSArgument extends TSExporter
     }
     
     /** {@inheritdoc} */
+    public function getImportList(): array
+    {
+        return array_merge(
+            $this->type->getImportList(),
+            $this->default->getImportList()
+        );
+    }
+    
+    /** {@inheritdoc} */
     public function buildTS(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : string
     {
         $str  = $mainTabStr . $tabStr . "$this->name";

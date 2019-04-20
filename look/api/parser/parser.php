@@ -20,6 +20,8 @@ use Look\API\Parser\Exceptions\ParserException;
 
 use Look\API\Parser\Struct\ExtractableScalarObject as ExtractableScalarObjectStruct;
 use Look\API\Parser\Struct\ExtractableScalarArray as ExtractableScalarArrayStruct;
+use Look\API\Parser\Struct\ExtractableEnumValue as ExtractableEnumValueStruct;
+use Look\API\Parser\Struct\ExtractableEnum as ExtractableEnumStruct;
 use Look\API\Parser\Struct\ArgumentClass as ArgumentClassStruct;
 use Look\API\Parser\Struct\APIClass as APIClassStruct;
 use Look\API\Parser\Struct\Argument as ArgumentStruct;
@@ -74,6 +76,35 @@ class Parser
         throw new ParserException("Нарушен принцип работы IScalarArray в [$className]");
     }
 
+    public static function extractEnum(ReflectionClass $class) : ExtractableEnumStruct
+    {
+        $struct = new ExtractableEnumStruct();
+        $struct->namespace = $class->getNamespaceName();
+        $struct->name      = $class->getShortName();
+        
+        if($comment = $class->getDocComment()) {
+            $struct->comment = new DocBlock($comment);
+        }
+
+        $fn = "{$class->getName()}::enumValues";
+        $fn(function(string $name, Enum $value) use ($class, &$struct) {
+            
+            $prop        = $class->getProperty($name);
+            $valueStruct = new ExtractableEnumValueStruct();
+            
+            if($comment = $prop->getDocComment()) {
+                $valueStruct->comment = new DocBlock($comment);
+            }
+            
+            $valueStruct->name  = $name;
+            $valueStruct->value = $value->getValue();
+            
+            $struct->values[$name] = $valueStruct;
+        });
+        
+        return $struct;
+    }
+    
     public static function parseNotScalarType(ReflectionParameter $argument)
     {
         if(!$argument->hasType()) {
@@ -92,13 +123,9 @@ class Parser
         // Конструктор токена не может быть изменен
         // Особенности вызова смотрите в \Look\API\Caller
         if(is_subclass_of($class, IToken::class)) {
-            return $class;
+            return IToken::class;
         }
-        
-        if(is_subclass_of($class, Enum::class)) {
-            return $class;
-        }
-        
+                
         $reflectionClass = new ReflectionClass($class);
         
         if(!$reflectionClass
@@ -107,6 +134,11 @@ class Parser
         || $reflectionClass->isInterface()
         || $reflectionClass->isAnonymous()) {
             throw new ParserException("Тип [$class] объявленный для аргумента [$argName] должен быть классом");
+        }
+        
+        // Enum
+        if(is_subclass_of($class, Enum::class)) {
+            return self::extractEnum($reflectionClass);
         }
         
         // Скалярный массив
@@ -126,7 +158,7 @@ class Parser
         if(!$reflectionConstructor) {
             throw new ParserException("Не удалось получить функцию констурктора класса [$class]");
         }
-                
+        
         $struct = new ArgumentClassStruct();
         $struct->namespace   = $reflectionClass->getNamespaceName();
         $struct->name        = $reflectionClass->getShortName();
@@ -172,6 +204,7 @@ class Parser
         {
             $valueStruct = new ValueStruct();
             $valueStruct->name = $argument->getName();
+            $originalValue = null;
             
             // Значение передано в качестве константы
             if($argument->isDefaultValueConstant()) {
@@ -183,22 +216,23 @@ class Parser
                     throw new ParserException("В качесте значения передана не существующая константа: $constName");
                 }
                 
-                $valueStruct->value = constant($constName);
+                $originalValue = constant($constName);
             }
             else {
-                $valueStruct->value = $argument->getDefaultValue();
+                $originalValue = $argument->getDefaultValue();
             }
             
             $detectedType  = null;
             $detectedValue = null;
-            
-            if(TypeManager::detectBaseType($valueStruct->value, $detectedValue, $detectedType)) {
+                        
+            if(TypeManager::detectBaseType($originalValue, $detectedValue, $detectedType, false)) {
                 $valueStruct->value = $detectedValue;
                 $valueStruct->type  = $detectedType;
             } else {
-                $valueStruct->type = 'mixed';
+                $valueStruct->type  = 'mixed';
+                $valueStruct->value = $originalValue;
             }
-            
+                        
             return $valueStruct;
         }
         

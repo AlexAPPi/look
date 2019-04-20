@@ -7,7 +7,7 @@ use Look\API\Parser\TypeScript\TSArgument;
 /**
  * Метод интерфейса
  */
-class TSInterfaceMethod
+class TSInterfaceMethod extends TSExporter
 {    
     public $isStatic;
     public $name;
@@ -24,5 +24,19 @@ class TSInterfaceMethod
         $this->isStatic  = $static;
         $this->name      = $name;
         $this->arguments = $argument;
+    }
+    
+    /** {@inheritdoc} */
+    public function getImportList() : array
+    {
+        $result = [];
+        
+        if($this->arguments && count($this->arguments) > 0) {
+            foreach($this->arguments as $arg) {
+                $result = array_merge($result, $arg->getImportList());
+            }
+        }
+        
+        return $result;
     }
 }

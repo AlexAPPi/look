@@ -41,6 +41,12 @@ class TSMethod extends TSExporter
     }
     
     /** {@inheritdoc} */
+    public function getImportList(): array
+    {
+        return $this->arguments->getImportList();
+    }
+    
+    /** {@inheritdoc} */
     public function buildDesc(string $mainTabStr, string $tabStr = ''): ?string
     {
         if($this->desc)

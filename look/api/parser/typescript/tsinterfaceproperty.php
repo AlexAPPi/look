@@ -38,6 +38,19 @@ class TSInterfaceProperty extends TSExporter
     }
     
     /** {@inheritdoc} */
+    public function getImportList() : array
+    {
+        if($this->default) {
+            return array_merge(
+                $this->type->getImportList(),
+                $this->default->getImportList()
+            );
+        }
+        
+        return $this->type->getImportList();
+    }
+    
+    /** {@inheritdoc} */
     public function buildDesc(string $mainTabStr, string $tabStr = ''): ?string
     {
         if($this->desc)

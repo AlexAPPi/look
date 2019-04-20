@@ -23,6 +23,12 @@ abstract class TSExporter implements ITSExportable
     protected abstract function buildTS(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : string;
     
     /**
+     * Возвращает список импортируемых зависимостей
+     * @return array|null
+     */
+    public abstract function getImportList() : array;
+    
+    /**
      * Формирует описание для объекта
      * @param string $mainTabStr -> Отступ от начала строки
      * @param string $tabStr     -> Отступ от начала реализации объекта

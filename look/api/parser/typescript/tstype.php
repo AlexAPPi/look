@@ -9,6 +9,7 @@ use Look\API\Parser\Struct\Type;
 use Look\API\Parser\TypeScript\TSExporter;
 use Look\API\Parser\Exceptions\ParserException;
 
+use Look\API\Parser\Struct\ExtractableEnum;
 use Look\API\Parser\Struct\ExtractableScalarArray;
 use Look\API\Parser\Struct\ExtractableScalarObject;
 
@@ -16,9 +17,34 @@ class TSType extends TSExporter
 {
     public $type;
     
+    /**
+     * @param mixed $type
+     */
     public function __construct($type)
     {
         $this->type = $type;
+    }
+    
+    /** {@inheritdoc} */
+    public function getImportList() : array
+    {
+        $result = [];
+        $type   = $this->type;
+        
+        if($type instanceof Type) {
+            
+            if(!$type->isScalar) {
+                
+                if(!is_string($type->class)
+                && !$type->class instanceof ExtractableScalarArray
+                && !$type->class instanceof ExtractableScalarObject) {
+                    
+                    $result[] = $type->class->namespace . '\\' . $type->class->name;
+                }
+            }
+        }
+            
+        return $result;
     }
     
     /**
@@ -99,8 +125,10 @@ class TSType extends TSExporter
                     return $fixType;
                 }
                 
-                $fixNameSpace = str_replace('\\', '.', $type->class->namespace);
-                return $fixNameSpace . '.' . $type->class->name;
+                return $type->class->name;
+                
+                //$fixNameSpace = str_replace('\\', '.', $type->class->namespace);            
+                //return $fixNameSpace . '.' . $type->class->name;
             }
         }
         

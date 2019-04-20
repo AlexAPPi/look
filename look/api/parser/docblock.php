@@ -16,8 +16,6 @@ class DocBlock
     // @param type Name -> Desc
     const paramExtract = '/\@(\w*)[ ]*(\w*)[ ]*\$(\w*)[ ->]*(.*)/';
     
-    
-    
     public $docblock,
            $description = null,
            $params      = [];
@@ -71,7 +69,7 @@ class DocBlock
     private function parseBlock()
     {
         $lines = preg_split("/(\r?\n)/", $this->docblock);
-                
+        
         if(count($lines) == 1)
         {
             if(preg_match(static::shortParam, $lines[0], $matches)) {
@@ -89,6 +87,7 @@ class DocBlock
             
             if(preg_match(static::shortText, $lines[0], $matches)) {
                 $this->description = $matches[1];
+                return;
             }
             
             $this->description = $lines[0];

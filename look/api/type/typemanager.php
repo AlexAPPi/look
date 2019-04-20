@@ -3,9 +3,12 @@
 namespace Look\API\Type;
 
 use ReflectionParameter;
+
 use Look\API\Type\Interfaces\IType;
 use Look\API\Type\Interfaces\IScalar;
 use Look\API\Type\Interfaces\IScalarArray;
+
+use Look\API\Exceptions\APIStandartException;
 
 /**
  * Класс предназначения для работы со скалярными типами данных:
@@ -83,10 +86,10 @@ final class TypeManager
                     
                     switch($type) {
 
-                        case 'int' :    $paramType = IType::TIntegerArray; break;
-                        case 'float' :  $paramType = IType::TDoubleArray;  break;
-                        case 'bool'  :  $paramType = IType::TBoolArray;    break;
-                        case 'string' : $paramType = IType::TStringArray;  break;
+                        case 'int' :    return IType::TIntegerArray;
+                        case 'float' :  return IType::TDoubleArray;
+                        case 'bool'  :  return IType::TBoolArray;
+                        case 'string' : return IType::TStringArray;
                         default: break;
                     }
 

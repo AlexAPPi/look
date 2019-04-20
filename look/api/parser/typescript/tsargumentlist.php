@@ -2,11 +2,6 @@
 
 namespace Look\API\Parser\TypeScript;
 
-use Iterator;
-use Countable;
-use ArrayAccess;
-use JsonSerializable;
-
 use Look\API\Parser\DocBlock;
 use Look\API\Parser\TypeScript\TSArgument;
 use Look\API\Parser\DocBlock\ParamDocBlock;
@@ -33,6 +28,20 @@ class TSArgumentList extends ObjectArray
     {
         $this->desc = $desc;
         parent::__construct(...$items);
+    }
+    
+    /** {@inheritdoc} */
+    public function getImportList(): array
+    {
+        $result = [];
+        
+        if($this->m_array && count($this->m_array) > 0) {
+            foreach($this->m_array as $arg) {
+                $result = array_merge($result, $arg->getImportList());
+            }
+        }
+        
+        return $result;
     }
     
     /**

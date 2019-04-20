@@ -18,7 +18,7 @@ class ProtectedStringData implements JsonSerializable, APIResultable
     protected $data;
     protected $encrypt;
     protected $decrypt;
-
+    
     /**
      * ProtectedData
      * @param string $data Данные, которые нужно зашифровать или расшифровать
@@ -93,13 +93,18 @@ class ProtectedStringData implements JsonSerializable, APIResultable
         return $this;
     }
     
-    /**
-     * Возвращает первоначальные данные
-     * @return string|null
-     */
-    public function getData() : ?string
+    /** {@inheritdoc} */
+    public function getValue()
     {
         return $this->data;
+    }
+    
+    /** {@inheritdoc} */
+    public function setValue($value): void
+    {
+        $this->data = $value;
+        $this->encrypt = null;
+        $this->decrypt = null;
     }
     
     /**

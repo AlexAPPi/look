@@ -8,6 +8,12 @@ namespace Look\API\Parser\TypeScript;
 interface ITSExportable
 {
     /**
+     * Возвращает список импортируемых зависимостей
+     * @return array|null
+     */
+    public function getImportList() : array;
+    
+    /**
      * Конвертирует объект в TS
      * @param int $offset  -> Количество отступов от начала строки
      * @param int $tabSize -> Количество пробелов в отступе

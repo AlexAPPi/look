@@ -21,6 +21,7 @@ class TSConstructor extends TSMethod
         parent::__construct('constructor', $arguments, TSMethod::NoPrefix, TSMethod::PublicAccess, $desc);
     }
     
+    /** {@inheritdoc} */
     public function buildTS(int $offset, int $tabSize, string $mainTabStr, string $tabStr): string
     {
         $fixName   = $this->name;

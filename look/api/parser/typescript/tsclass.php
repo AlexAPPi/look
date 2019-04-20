@@ -39,6 +39,43 @@ class TSClass extends TSExporter
         $this->methods    = [];
     }
     
+    /** {@inheritdoc} */
+    public function getImportList(): array
+    {
+        $result = [];
+        
+        if($this->constructor) {
+            if($this->constructor->arguments) {
+                $result = array_merge(
+                    $result,
+                    $this->constructor->arguments->getImportList()
+                );
+            }
+        }
+        
+        $propertysCount = count($this->propertys);
+        if($propertysCount > 0) {
+            foreach($this->propertys as $prop) {
+                $result = array_merge(
+                    $result,
+                    $prop->getImportList()
+                );
+            }
+        }
+        
+        $methodsCount = count($this->methods);
+        if($methodsCount > 0) {
+            foreach($this->methods as $method) {
+                $result = array_merge(
+                    $result,
+                    $method->getImportList()
+                );
+            }
+        }
+        
+        return $result;
+    }
+    
     /**
      * @param TSMethod $method -> Метод
      */

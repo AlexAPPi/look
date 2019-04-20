@@ -2,13 +2,10 @@
 
 namespace Look\API;
 
-use Closure;
 use TypeError;
 use ReflectionMethod;
 use ReflectionFunction;
 use ReflectionParameter;
-
-use Look\API\Exceptions\APIStandartException;
 
 use Look\API\Type\TypeManager;
 use Look\API\Type\Interfaces\IType;
@@ -205,7 +202,7 @@ class Caller
         
         // Определеям значение,
         // если оно существует возвращаем его
-        $hasValueFn  = "$class::hasValue";
+        $hasValueFn  = "$class::enumHasValue";
         $hasValueVal = $hasValueFn($value);
         if($hasValueVal !== null) {
             return $hasValueVal;
@@ -222,7 +219,7 @@ class Caller
      * @param bool                $convert -> Не строгая типизация
      * @return mixed
      */
-    public static function defaultHandler(ReflectionParameter $param, string $type, $value,  bool $convert)
+    public static function defaultHandler(ReflectionParameter $param, string $type, $value,  bool $convert = false)
     {        
         return Caller::getFixArgsForClassFunc(
             $type,
@@ -244,7 +241,7 @@ class Caller
      * @param bool                $convert  -> Преобразовать тип под подходящий
      * @throws ParametrException
      */
-    private static function getArgFixValue(ReflectionParameter $param, $value, bool $convert = true)
+    private static function getArgFixValue(ReflectionParameter $param, $value, bool $convert = false)
     {
         $originalParamType = $param->hasType() ? (string)$param->getType() : null;
         $paramName         = $param->name;
@@ -503,7 +500,7 @@ class Caller
      * @throws ParametrException
      * @throws UndefinedException
      */
-    private static function getArgValue(ReflectionParameter $param, $value, bool $convert = true)
+    private static function getArgValue(ReflectionParameter $param, $value, bool $convert = false)
     {
         // Не обязательный параметр
         // Если он не указан, передаем значение по умолчанию
@@ -544,7 +541,7 @@ class Caller
      * @param bool    $convert    -> Преобразовать string в другой тип
      * @return mixed
      */
-    private static function getFixArgsForParameters($funcParams, array $args, bool $convert = true)
+    private static function getFixArgsForParameters($funcParams, array $args, bool $convert = false)
     {
         // Определяем тип ключей
         $isAssocA = TypeManager::arrIsAssoc($args);
@@ -596,7 +593,7 @@ class Caller
      * @param bool    $convert -> Преобразовать string в другой тип
      * @return mixed
      */
-    public static function getFixArgsForClosure($func, array $args, bool $convert = true)
+    public static function getFixArgsForClosure($func, array $args, bool $convert = false)
     {
         // Получаем список переменных функции метода
         $funcInfo   = new ReflectionFunction($func);
@@ -616,7 +613,7 @@ class Caller
      * @param bool    $convert -> Преобразовать string в другой тип
      * @return mixed
      */
-    public static function getFixArgsForClassFunc(string $class, string $func, array $args, bool $convert = true)
+    public static function getFixArgsForClassFunc(string $class, string $func, array $args, bool $convert = false)
     {
         // Получаем список переменных функции метода
         $funcInfo   = new ReflectionMethod($class, $func);

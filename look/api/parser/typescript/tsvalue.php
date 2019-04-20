@@ -3,6 +3,7 @@
 namespace Look\API\Parser\TypeScript;
 
 use Look\API\Parser\Struct\Value;
+use Look\API\Type\Interfaces\IType;
 
 class TSValue
 {
@@ -17,16 +18,37 @@ class TSValue
     {
         if($this->value instanceof Value) {
             return true;
-        }
+        }        
         return false;
     }
     
+    /** {@inheritdoc} */
+    public function getImportList() : array
+    {
+        $result = [];
+        
+        return $result;
+    }
+    
+    /** {@inheritdoc} */
     public function toTS() : string
     {
-        if($this->value instanceof Value) {
-            return $this->value->value;
+        $value = $this->value;
+        
+        if($value instanceof Value) {
+            
+            if($value->type == IType::TString) {
+                return "\"$value->value\"";
+            }
+            
+            return "$value->value";
         }
         
-        return '';
+        return "$value";
+    }
+    
+    public function __toString()
+    {
+        return $this->toTS();
     }
 }

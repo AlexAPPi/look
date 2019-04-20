@@ -5,6 +5,8 @@ namespace Look\API\Type;
 use Closure;
 use JsonSerializable;
 
+use Look\Exceptions\SystemLogicException;
+
 /**
  * Базовое представление Enum
  */
@@ -16,7 +18,7 @@ abstract class Enum implements JsonSerializable
      * Перебирает все значения
      * @param callable $callback
      */
-    final protected static function values(Closure $callback) : void
+    final public static function enumValues(Closure $callback) : void
     {
         $vars = get_class_vars(static::class);
         foreach($vars as $name => $value) {
@@ -29,17 +31,17 @@ abstract class Enum implements JsonSerializable
             }
         }
     }
-    
+        
     /**
      * Проверяет существование значения
      * @param mixed $value Значение
      * @return static|null
      */
-    final public static function hasValue($value)
+    final public static function enumHasValue($value)
     {
         $return = null;
         $class  = static::class;
-        static::values(function($name) use ($class, $value, &$return) {
+        static::enumValues(function($name) use ($class, $value, &$return) {
             if($class::${$name}->getValue() == $value) {
                 $return = $class::${$name};
                 return false;
@@ -53,7 +55,7 @@ abstract class Enum implements JsonSerializable
      * @param string $name
      * @return bool
      */
-    final public static function valueExists(string $name) : bool
+    final public static function enumValueExists(string $name) : bool
     {
         return property_exists(static::class, $name);
     }
@@ -63,7 +65,7 @@ abstract class Enum implements JsonSerializable
      * @param string $name
      * @return mixed
      */
-    final function getValueByName(string $name)
+    final public static function enumGetValueByName(string $name)
     {
         return static::${$name}->getValue();
     }
@@ -101,7 +103,12 @@ abstract class Enum implements JsonSerializable
     public static function __onAutoload() : void
     {
         $class = static::class;
-        static::values(function($name, $value) use ($class) {
+        static::enumValues(function($name, $value) use ($class) {
+            
+            if($value == null) {
+                throw new SystemLogicException("Enum [$class] must have some value");
+            }
+            
             $class::${$name} = new $class($value);
         });
     }
@@ -113,7 +120,7 @@ abstract class Enum implements JsonSerializable
     public function __sleep() : array
     {
         $res  = [];
-        static::values(function($name) use (&$res) {
+        static::enumValues(function($name) use (&$res) {
             $res[] = $name;
         });
         return $res;
@@ -125,20 +132,20 @@ abstract class Enum implements JsonSerializable
     public function __wakeup() {}
     
     /**
-     * Преобразует объект в Json
-     * @return mixed
-     */
-    public function jsonSerialize()
-    {
-        return $this->__enum_value;
-    }
-    
-    /**
      * Преобразует объект в строку
      * @return string
      */
     public function __toString() : string
     {
         return (string)$this->__enum_value;
+    }
+    
+    /**
+     * Преобразует объект в Json
+     * @return mixed
+     */
+    public function jsonSerialize()
+    {
+        return $this->__enum_value;
     }
 }
