@@ -34,7 +34,7 @@ go make API Session handler class:
             return MyTokenType::create($userId, $signature, $expires);
         }
 
-Your Type Script hanler:
+Your Type Script handler:
 
     import Request from './Look/API/Request';
     import Session from './Look/API/Session';
