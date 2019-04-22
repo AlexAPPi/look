@@ -179,14 +179,6 @@ try
     
     $params     = $_API_REQUEST;
     $urlCurrect = \Look\Url\Currect::getInstance();
-    
-    // Создаем библиотеку описывающую все API
-    if($urlCurrect->getFile() == 'lib.ts')
-    {
-        echo \Look\API\Parser\BuildAPITSLib::build();
-        exit;
-    }
-    
     \Look\API\Controller::handle($urlCurrect, $params);
 }
 catch(Throwable $ex) { api_error_ans($ex); }
