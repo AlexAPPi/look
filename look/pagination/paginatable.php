@@ -4,9 +4,9 @@ namespace Look\Pagination;
 
 use Look\Exceptions\SystemException;
 
-use Look\API\Type\TypeManager;
-
 use Look\Page\HtmlPage;
+
+use Look\API\Type\TypeManager;
 
 use Look\Url\Currect as UrlCurrect;
 use Look\Url\Builder as UrlBuilder;
