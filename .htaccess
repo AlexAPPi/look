@@ -1,0 +1,20 @@
+AddType image/x-icon .ico
+AddDefaultCharset UTF-8
+Options +FollowSymlinks
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+RewriteEngine on
+
+# API Request
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^(.*) /look/php/api.php [QSA,L]
+
+RewriteCond %{REQUEST_URI} !^/public/.*$
+RewriteRule ^(.*)$ /public/$1 [QSA,L]
+
+</IfModule>
+
+<IfModule mod_php5.c> 
+php_flag magic_quotes_gpc Off
+</IfModule>

@@ -2,15 +2,14 @@
 
 namespace Look\Pagination;
 
-use Look\Type\Converter;
+use Look\Exceptions\SystemException;
+
+use Look\API\Type\TypeManager;
 use Look\Url\Currect as UrlCurrect;
 use Look\Url\Builder as UrlBuilder;
 
 use Look\Pagination\ISectionable as ISectionableInterface;
 
-use Exception;
-use Look\Page\Head;
-use Look\Page\Navigation;
 use Look\Page\Exceptions\PageEmptyException;
 use Look\Page\Exceptions\PageNotFoundException;
 use Look\Page\Exceptions\Page301RedirectException;
@@ -128,7 +127,7 @@ trait Paginatable
             // Удаляем из url префикс страницы
             // Теперь url вида .../section/page/all
             // будет иметь вид .../section
-            if(Converter::strToUnsignedInt($lastSection) !== false || $lastSection === static::$pagination__showAllIdentifier) {
+            if(TypeManager::strToUnsignedInt($lastSection) !== false || $lastSection === static::$pagination__showAllIdentifier) {
                 
                 $cUrl->removeSection(-2, 2)->save();
                 
@@ -141,6 +140,44 @@ trait Paginatable
         }
         
         return $url;
+    }
+    
+    /**
+     * Возвращает список свойств для инициализации __sleep метода
+     * @return array
+     */
+    protected function __paginationSleep() : array
+    {
+        return [
+            'pagination_method',
+            'pagination__url',
+            'pagination__fixUrl',
+            'pagination__currect',
+            'pagination__maxIndex',
+            'pagination__limit',
+            'pagination__offset',
+            'pagination__total',
+            'pagination__items',
+            'pagination__showAll',
+            'pagination__currectIsCanonical',
+            'pagination__currectIsNotFound',
+            'pagination__currectIsRedirect',
+            'pagination__isEmpty',
+            'pagination__paramsImportant',
+            'pagination__itemName',
+            'pagination__pageName',
+            'pagination__sectionFormat',
+            'pagination__showAllFormat'
+        ];
+    }
+    
+    /**
+     * Инициализация __wakeup метода
+     * @return array
+     */
+    protected function __paginationWakeup() : void
+    {
+        
     }
     
     /**
@@ -180,7 +217,7 @@ trait Paginatable
 
                 // Вытаскиваем index
                 // Index может быть только положительным числом
-                $numIndex = Converter::strToUnsignedInt($lastSection);
+                $numIndex = TypeManager::strToUnsignedInt($lastSection);
 
                 if ($numIndex !== false) {
 
@@ -249,7 +286,7 @@ trait Paginatable
             }
         }
         else {
-            throw new Exception('Класс уже инициализирован');
+            throw new SystemException('Класс уже инициализирован');
         }
         
         return $this;
@@ -373,11 +410,13 @@ trait Paginatable
     /**
      * Функция автоматически устанавливает для страницы meta теги:
      * 
+     * 
+     * 
      * <b>1)</b> <link rel="canonical" ...><br>
      * <b>2)</b> <link rel="prev" ...><br>
      * <b>3)</b> <link rel="next" ...><br>
      */
-    public function initPaginationSEO() : void
+    public function initPaginationSEO(HtmlPage $page) : void
     {
         if($this->pagination_method == static::$PaginationMethod_ALL) {
             if(!$this->pagination__currectIsCanonical) Navigation::setCanonical($this->getPaginationBaseUrl());
@@ -588,7 +627,7 @@ trait Paginatable
      * @return string|null Возвращет ссылку или <b>FALSE</b> если следующей страницы не существует
      */
     public function getPaginationNextLink() : ?string
-    {        
+    {
         if($this->paginationHasNext()) {
             
             return $this->pagination__fixUrl->restoreOnOutput()
@@ -788,10 +827,12 @@ trait Paginatable
      * @param array  $titles Массив слов для склонения
      * @return string
      **/
-    private static function digitCase($number, $titles) : string
+    private static function digitCase(int $number, array $titles) : string
     {
-        //отсекаем минусовые значения
-        $number = str_replace('-', '', $number);
+        if($number < 0) {
+            $number = -1 * $number;
+        }
+        
         $cases = array (2, 0, 1, 1, 1, 2);
         return $titles[ ($number % 100 > 4 && $number % 100 < 20) ? 2 : $cases[min($number % 10, 5)] ];
     }
