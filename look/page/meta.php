@@ -12,6 +12,12 @@ use IteratorAggregate;
 class Meta extends HTMLWrap implements ArrayAccess, IteratorAggregate
 {
     /**
+     * Мета данные
+     * @var array
+     */
+    protected $meta = [];
+
+    /**
      * Возвращает значение meta тега
      * 
      * @param string $name -> Название meta тега

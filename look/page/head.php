@@ -146,7 +146,7 @@ class Head extends HTMLWrap
         $result .= $this->robots->__toHTML($offset + 1, $tabSize);
         $result .= $this->navigation->__toHTML($offset + 1, $tabSize);
         
-        $result .= "$mainTabStr</head>\n";
+        $result .= "$mainTabStr</head>";
         
         return $result;
     }
