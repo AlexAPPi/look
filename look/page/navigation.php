@@ -2,7 +2,7 @@
 
 namespace Look\Page;
 
-class Navigation
+class Navigation extends HTMLWrap
 {    
     /**
      * @var string Зеркало страницы
@@ -140,5 +140,25 @@ class Navigation
     public function hasNextPagination() : bool
     {
         return !empty($this->nextLink);
+    }
+    
+    /** {@inheritdoc} */
+    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
+    {
+        $html = '';
+        
+        if($this->hasCanonical()) {
+            $html .= $mainTabStr . $this->getCanonical(true);
+        }
+        
+        if($this->hasPrevPagination()) {
+            $html .= $mainTabStr . $this->getPrevPagination(true);
+        }
+        
+        if($this->hasNextPagination()) {
+            $html .= $mainTabStr . $this->getNextPagination(true);
+        }
+        
+        return $html;
     }
 }

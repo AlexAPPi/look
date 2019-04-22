@@ -9,10 +9,13 @@ use Look\Page\Helper\CssMinimizer;
 /**
  * Класс шапки страницы
  */
-class Head
+class Head extends HTMLWrap
 {
     /** @var string Назание параметра который отвечает за антикеш в браузере */
     public $unCacheParam = 'v';
+    
+    /** @var \Look\Page\Robots */
+    public $robots;
     
     /** @var \Look\Page\Meta -> мета данные */
     public $meta;
@@ -29,6 +32,7 @@ class Head
     public function __construct()
     {
         $this->meta       = new Meta();
+        $this->robots     = new Robots();
         $this->navigation = new Navigation();
     }
     
@@ -131,5 +135,19 @@ class Head
             } catch(Throwable $ex) {}
         }
         return $result . PHP_EOL;
+    }
+    
+    /** {@inheritdoc} */
+    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
+    {
+        $result = "$mainTabStr<head>\n";
+        
+        $result .= $this->meta->__toHTML($offset + 1, $tabSize);
+        $result .= $this->robots->__toHTML($offset + 1, $tabSize);
+        $result .= $this->navigation->__toHTML($offset + 1, $tabSize);
+        
+        $result .= "$mainTabStr</head>\n";
+        
+        return $result;
     }
 }

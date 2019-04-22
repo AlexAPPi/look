@@ -6,6 +6,8 @@ use Look\Exceptions\SystemException;
 
 use Look\API\Type\TypeManager;
 
+use Look\Page\HtmlPage;
+
 use Look\Url\Currect as UrlCurrect;
 use Look\Url\Builder as UrlBuilder;
 
@@ -17,6 +19,9 @@ use Look\Pagination\ISectionable;
 
 /**
  * Класс пагинации страниц
+ * 
+ * В версии 2.2 бал добавлен параметр $pagination_method, который реализует
+ * CEO оптимизацию для поисковых систем (Яндекс, Google)
  * 
  * В версии 2.1 был добавлен параметр $pagination__paramsImportant, который
  * указывает важность параметров при определении canonical страницы
@@ -411,31 +416,35 @@ trait Paginatable
     /**
      * Функция автоматически устанавливает для страницы meta теги:
      * 
-     * 
+     * @param HtmlPage &$page -> Объект страницы
+     * @return void
      * 
      * <b>1)</b> <link rel="canonical" ...><br>
      * <b>2)</b> <link rel="prev" ...><br>
      * <b>3)</b> <link rel="next" ...><br>
      */
-    public function initPaginationSEO(HtmlPage $page) : void
+    public function initPaginationSEO(HtmlPage &$page) : void
     {
         if($this->pagination_method == static::$PaginationMethod_ALL) {
-            if(!$this->pagination__currectIsCanonical) Navigation::setCanonical($this->getPaginationBaseUrl());
+            if(!$this->pagination__currectIsCanonical) {
+                $page->setCanonical($this->getPaginationBaseUrl());
+            }
         } else if($this->pagination_method == static::$PaginationMethod_PrevNext_NoindexFollow) {
-            $index  = false;
+            $index = false;
             // Разрешаем индекс для 1 страницы
             if($this->pagination__currect == 1) {
-                $index  = true;
+                $index = true;
             }
-            Head::addRobot('yandex');
-            Head::setAccessIndex($index, 'yandex');
+            
+            // Для Яндекса запрещаем индексировать текст на 2,3, ... страницах
+            $page->robotAccessIndex($index, 'yandex');
         }
         
         $prev = $this->getPaginationPrevLink();
         $next = $this->getPaginationNextLink();
 
-        if($prev !== null) Navigation::setPrevPagination($prev);
-        if($next !== null) Navigation::setNextPagination($next);
+        if($prev !== null) $page->setPrevPagination($prev);
+        if($next !== null) $page->setNextPagination($next);
     }
     
     /**

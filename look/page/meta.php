@@ -9,7 +9,7 @@ use IteratorAggregate;
 /**
  * Класс для работы с meta данными страницы
  */
-class Meta implements ArrayAccess, IteratorAggregate
+class Meta extends HTMLWrap implements ArrayAccess, IteratorAggregate
 {
     /**
      * Возвращает значение meta тега
@@ -143,6 +143,16 @@ class Meta implements ArrayAccess, IteratorAggregate
         $html = '';
         foreach($this->meta as $name => $content) {
             $html .= $this->buildMetaTag($name, $content);
+        }
+        return $html;
+    }
+    
+    /** {@inheritdoc} */
+    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
+    {
+        $html = '';
+        foreach($this->meta as $name => $content) {
+            $html .= $mainTabStr . $this->buildMetaTag($name, $content);
         }
         return $html;
     }
