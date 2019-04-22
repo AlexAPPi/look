@@ -5,14 +5,15 @@ namespace Look\Pagination;
 use Look\Exceptions\SystemException;
 
 use Look\API\Type\TypeManager;
+
 use Look\Url\Currect as UrlCurrect;
 use Look\Url\Builder as UrlBuilder;
-
-use Look\Pagination\ISectionable as ISectionableInterface;
 
 use Look\Page\Exceptions\PageEmptyException;
 use Look\Page\Exceptions\PageNotFoundException;
 use Look\Page\Exceptions\Page301RedirectException;
+
+use Look\Pagination\ISectionable;
 
 /**
  * Класс пагинации страниц
@@ -348,7 +349,7 @@ trait Paginatable
      */
     protected function initPaginationItems($items, $limit = 30) : bool
     {
-        if(!is_array($items) && !$items instanceof ISectionableInterface) {
+        if(!is_array($items) && !$items instanceof ISectionable) {
             throw new Exception ('Элементы пагинации должны быть массивом или секциями');
         }
         
@@ -356,7 +357,7 @@ trait Paginatable
         $this->pagination__limit  = $limit;
         
         // Получаем информацию о количестве элементов
-        if ($this->pagination__items instanceof ISectionableInterface)
+        if ($this->pagination__items instanceof ISectionable)
             $this->pagination__total = $this->pagination__items->count();
         else
             $this->pagination__total = count($this->pagination__items);
@@ -555,7 +556,7 @@ trait Paginatable
     public function getPaginationCurrectList()
     {
         // Выборка колекции доступна по интерфесу секций
-        if ($this->pagination__items instanceof ISectionableInterface) {
+        if ($this->pagination__items instanceof ISectionable) {
 
             if ($this->paginationShowAll()) {
                 return $this->pagination__items->get();
