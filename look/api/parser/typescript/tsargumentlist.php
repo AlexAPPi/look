@@ -67,10 +67,12 @@ class TSArgumentList extends ObjectArray
             if($paramDesc) {
                 $result = "";
                 foreach($sortList as $argName) {
-                    $extractDoc = $paramDesc[$argName];
-                    if($extractDoc instanceof ParamDocBlock) {
-                        // * {NAME} {DESC}
-                        $result .= $mainTabStr . $tabStr . " * @param $extractDoc->name $extractDoc->desc\n";
+                    if(isset($paramDesc[$argName])) {
+                        $extractDoc = $paramDesc[$argName];
+                        if($extractDoc instanceof ParamDocBlock) {
+                            // * {NAME} {DESC}
+                            $result .= $mainTabStr . $tabStr . " * @param $extractDoc->name $extractDoc->desc\n";
+                        }
                     }
                 }
                 return $result;

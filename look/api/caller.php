@@ -13,6 +13,7 @@ use Look\API\Type\Interfaces\IScalar;
 use Look\API\Type\Interfaces\IScalarArray;
 
 use Look\API\Type\Exceptions\ArrayException;
+use Look\API\Type\Exceptions\StringException;
 use Look\API\Type\Exceptions\BooleanException;
 use Look\API\Type\Exceptions\UndefinedException;
 use Look\API\Type\Exceptions\BooleanArrayException;
@@ -69,9 +70,9 @@ class Caller
      * Возращает экземпляр базы данных
      * @return ITokenDataBase
      */
-    public function &getTokenDB() : ITokenDataBase
+    public static function &getTokenDB() : ITokenDataBase
     {
-        return $this->tokenDB;
+        return static::getInstance()->tokenDB;
     }
     
     /**
@@ -142,9 +143,9 @@ class Caller
         
         // Извлекаем токен из базы данных
         if(is_string($token)) {
-            $token = static::getInstance()->tokenDB->get($token, $class);
+            $token = static::getTokenDB()->get($token, $class);
         }
-
+        
         // Токен распознан
         if($token instanceof IToken) {
 
@@ -220,7 +221,12 @@ class Caller
      * @return mixed
      */
     public static function defaultHandler(ReflectionParameter $param, string $type, $value,  bool $convert = false)
-    {        
+    {
+        // scalar type
+        if($convert && !is_array($value)) {
+            $value = [$value];
+        }
+        
         return Caller::getFixArgsForClassFunc(
             $type,
             static::ClassConstructorMethod,
@@ -251,7 +257,7 @@ class Caller
         $convertedType  = null;
         $convertedValue = null;
                 
-        echo "$paramName | $paramType | $paramBuiltin | $originalParamType" . PHP_EOL;
+        //echo "$paramName | $paramType | $paramBuiltin | $originalParamType" . PHP_EOL;
         
         switch($paramType) {
 
@@ -263,7 +269,19 @@ class Caller
                 $convertedValue = $value;
                 
             break;
-            
+        
+            case IType::TString:
+        
+                if(is_string($value)) {
+                    $convertedType  = IType::TString;
+                    $convertedValue = $value;
+                    break;
+                }
+                
+                throw new StringException($paramName);
+                
+            break;
+                
             case IType::TBool:
                 
                 $convertedType  = IType::TBool;
@@ -310,7 +328,6 @@ class Caller
                 
             case IType::TInteger:
             case IType::TDouble:
-            case IType::TString:
                 
                 // Если не удалось определить тип, или передаваемый тип не совпадает с заданным
                 // Возвращаем ошибку передачи параметра
@@ -392,7 +409,7 @@ class Caller
                     ////////////////////////////////////////////////////////////
                     
                     // Проверка токена
-                    $token = static::checkArgOfToken($param, $originalParamType, $value);
+                    $token = static::checkArgOfToken($param, $value);
                     if($token) {
                         return $token;
                     }

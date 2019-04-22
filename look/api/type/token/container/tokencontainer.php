@@ -3,13 +3,13 @@
 namespace Look\API\Type\Token\Container;
 
 use JsonSerializable;
+
+use Look\API\Caller;
+
 use Look\API\APIResultable;
 
 use Look\API\Type\Token\IToken;
 use Look\API\Type\Token\Exceptions\TokenException;
-
-use Look\Crypt\RSA\PublicKey;
-use Look\Crypt\RSA\PrivateKey;
 
 use Look\API\Type\Token\DataBase\ITokenDataBase;
 use Look\API\Type\Token\DataBase\Exceptions\TokenDataBaseSecureException;
@@ -97,17 +97,22 @@ class TokenContainer implements IToken, JsonSerializable, APIResultable
     protected static function afterCreate(&$token) : void {}
     
     /**
+     * Формирует токен доступа
      * 
-     * @param ITokenDataBase &$db
-     * @param int            $userId
-     * @param string         $userSignature
-     * @param int            $expires
-     * @param array          $buf
+     * @param int            $userId        -> ID пользователя
+     * @param string         $userSignature -> Хеш логина и пароля
+     * @param int            $expires       -> Время жизни в секундах, по умолчанию: 0 - бессмертный токен
+     * @param array          $buf           -> Данные хранящаяся в буфере обмена
+     * 
+     * @see \Look\API\Caller::getTokenDB
+     * 
      * @return static
      */
-    final public static function create(ITokenDataBase &$db, int $userId, string $userSignature, int $expires = 0, array $buf = [])
+    final public static function create(int $userId, string $userSignature, int $expires = 0, array $buf = [])
     {
+        $db      = &Caller::getTokenDB();
         $permits = static::getPermits();
+        
         static::beforeCreate($db, $userId, $userSignature, $expires, $buf, $permits);
         $result = $db->add($userId, $userSignature, $expires, $permits, $buf, static::class);
         static::afterCreate($result);

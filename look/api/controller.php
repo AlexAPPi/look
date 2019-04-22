@@ -32,13 +32,13 @@ final class Controller
     const accessTokenArgName = 'accessToken';
 
     /** Название заголовка, через который передается токен */
-    const accessTokenHeaderName = 'HTTP_X_Look_ACCESS_TOKEN'; //'X-Look-Access-Token';
+    const accessTokenHeaderName = 'HTTP_X_LOOK_ACCESS_TOKEN'; //'X-Look-Access-Token';
     
     /** Название аргумента, по которому передается зашифрованное сообщение по умолчанию */
     const protectedDataArgName = 'protectedData';
     
     /** Название заголока, через который передается зашифрованное сообщение */
-    const protectedDataHeaderName = 'HTTP_X_Look_PROTECTED_DATA'; //'X-Look-Protected-Data';
+    const protectedDataHeaderName = 'HTTP_X_LOOK_PROTECTED_DATA'; //'X-Look-Protected-Data';
 
     /** Информация не найдена */
     const codeNotFound      = 404;
@@ -392,7 +392,7 @@ final class Controller
                     
                     // Извлекаем токен из заголовка
                     if(!isset($unfix[static::accessTokenArgName])) {
-                        $unfix[static::accessTokenArgName]   = static::extractTokenFromRequest($unfix);
+                        $unfix[static::accessTokenArgName] = static::extractTokenFromRequest($unfix);
                     }
                     
                     // Извлекаем зашифрованные данные из заголовка
@@ -402,7 +402,7 @@ final class Controller
                     
                     $apiClass = APP_NAME . '\\API\\' . $apiClass;
                     $method   = $apiClass . '::' . $apiFunc;
-                    $args     = Caller::getFixArgsForClassFunc($apiClass, $apiFunc, $unfix);
+                    $args     = Caller::getFixArgsForClassFunc($apiClass, $apiFunc, $unfix, true);
                     $result   = $method(...$args);
 
                     if($result instanceof ApiResult) {
