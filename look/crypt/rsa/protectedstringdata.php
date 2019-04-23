@@ -3,12 +3,13 @@
 namespace Look\Crypt\RSA;
 
 use JsonSerializable;
-use Look\API\APIResultable;
 
 use Look\Crypt\RSA\PublicKey;
 use Look\Crypt\RSA\PrivateKey;
 
 use Look\Crypt\RSA\Exceptions\RSAExcepton;
+
+use Look\API\Type\Interfaces\APIResultable;
 
 /**
  * Структура защищенный данных
