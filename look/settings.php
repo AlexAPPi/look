@@ -3,13 +3,14 @@
 namespace Look;
 
 use Look\File\INIFile;
+use Look\Type\Traits\Singleton;
 
 /**
  * Класс для работы с настройками
  */
 final class Settings
 {
-    use \Look\Type\Traits\Singleton;
+    use Singleton;
     
     /**
      * Название файла с настройками

@@ -2,8 +2,7 @@
 
 namespace Look;
 
-use Throwable;
-use Look\API\Type\Interfaces\IType;
+use Look\Type\Interfaces\IType;
 use Look\Exceptions\SystemLogicException;
 
 /**
@@ -60,11 +59,16 @@ class AutoLoadManager
     {
         $lglobalName = strtolower($globalName);
         $path        = str_replace('\\', DIRECTORY_SEPARATOR, $lglobalName);
-        $prevPath    = $path . '.php';
         $basePath    = $globalDir . DIRECTORY_SEPARATOR;
-        $fullPath    = $basePath . $prevPath;
+        $prevPath    = $path . '.php';
         
-        return $fullPath;
+        // Поддержка /SomeName/SomeName.php => use SomeType
+        if(is_dir($basePath . $path)) {
+            $name = basename($globalName);
+            $prevPath = $path . DIRECTORY_SEPARATOR . $name . '.php';
+        }
+        
+        return $basePath . $prevPath;
     }
 
     /**

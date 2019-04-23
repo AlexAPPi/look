@@ -2,7 +2,6 @@
 
 namespace Look\Url;
 
-use Look\Url\Reference;
 use Look\Url\Exceptions\URLBuilderException;
 
 /**
@@ -15,10 +14,10 @@ class Builder
     const HTTP  = 'http';
     const HTTPS = 'https';
     
-    /** @var Полный URL */
+    /** @var string Полный URL */
     protected static $currectUrl = '';
     
-    /** @var Базовый URL */
+    /** @var string Базовый URL */
     protected static $baseUrl = '';
     
     /** @var string Протокол */
@@ -117,7 +116,7 @@ class Builder
             
             $this->save();
             
-        } else throw new URLBuilderException('Формат: ' . $url . ' не поддерживается');
+        } else throw new URLBuilderException("Формат: $url не поддерживается");
     }
     
     /**
@@ -1445,18 +1444,7 @@ class Builder
         
         return $res;
     }
-    
-    /**
-     * Конвертирует ссылку в reference
-     * 
-     * @return \Look\Url\Reference
-     */
-    public function toReference()
-    {
-        $url = (string)$this;        
-        return new Reference($url);
-    }
-    
+        
     /**
      * Удаляет из URL все запрещенные спецсимволы.
      * 

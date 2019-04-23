@@ -1,6 +1,8 @@
 <?php
 
-namespace Look\XCSRF;
+namespace Look;
+
+use Look\XCSRF\Handler;
 
 /**
  * Класс обработчик форм запросов
@@ -8,7 +10,7 @@ namespace Look\XCSRF;
  * 
  * @author Alexandr Shamarin <alexsandrshamarin@yandex.ru>
  */
-class XCSRFHandler
+class XCSRF
 {
     /** @var string Буфер обмена */
     protected static $buffer = '';
@@ -74,13 +76,13 @@ class XCSRFHandler
      * @param string   $id      -> Id обработчика
      * @param string   $method  -> Метод обработки GET|POST|PUT|DELETE
      * @param callable $handler -> Функция обработчика
-     * @return \Look\XCSRF\XCSRFEntity
+     * @return \Look\XCSRF\Handler
      */
     public static function setHanler(string $id, string $method, callable $handler) : XCSRFEntity
     {
         static::execHandler($id, $handler);
         $token = static::regInStore($id, $method);
-        return new XCSRFHandler($id, $method, $token);
+        return new Handler($id, $method, $token);
     }
     
     /**

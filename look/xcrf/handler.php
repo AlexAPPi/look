@@ -12,7 +12,7 @@ use Look\Type\HTMLWrap;
  * 
  * @author Alexandr Shamarin <alexsandrshamarin@yandex.ru>
  */
-class XCSRFEntity extends HTMLWrap
+class Handler extends HTMLWrap
 {
     protected $id;
     protected $method;
