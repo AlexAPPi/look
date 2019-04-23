@@ -2,10 +2,12 @@
 
 namespace Look\Type;
 
+use Look\Type\Interfaces\IUnsignedArray;
+
 /**
  * Базовый класс массива состоящего только из положительных числел
  */
-class UnsignedNumericArray extends NumericArray
+class UnsignedNumericArray extends NumericArray implements IUnsignedArray
 {
     /** {@inheritdoc} */
     public static function convertOffsetValue($value)
@@ -14,8 +16,8 @@ class UnsignedNumericArray extends NumericArray
     }
     
     /** {@inheritdoc} */
-    static function __getEvalType(): string { return self::TNumericArray; }
+    static function __getEvalType(): string { return self::TUnsignedNumericArray; }
     
     /** {@inheritdoc} */
-    static function __getItemEvalType(): string { return self::TNumeric; }
+    static function __getItemEvalType(): string { return self::TUnsignedNumeric; }
 }

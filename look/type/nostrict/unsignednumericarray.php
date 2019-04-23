@@ -1,43 +1,33 @@
 <?php
 
-namespace Look\Type;
+namespace Look\Type\NoStrict;
 
 use Look\Type\TypeManager;
+use Look\Type\Interfaces\INotStrict;
+use Look\Type\UnsignedNumericArray as StrictUnsignedNumericArray;
 
 /**
  * Базовый класс массива состоящего только из положительных числел
  */
-class UnsignedNumericArray extends NumericArray
+class UnsignedNumericArray extends StrictUnsignedNumericArray implements INotStrict
 {
     /** {@inheritdoc} */
-    public function offsetSet($offset, $value)
+    public static function convertOffsetValue($value)
     {
-        $original = $value;
-        
         // Преобразуем строку в значение
-        if(static::CanSetString && is_string($value)) {
-            $value = TypeManager::strToNumeric($value);
-        }
-        
-        // Определенное типизироанное значение
-        // Значение должно быть больше >= 0
-        if($value !== false && (is_double($value) || is_int($value)) && $value >= 0) {
-            
-            if(is_null($offset)) {
-                $this->m_array[] = $value;
-            } else {
-                $this->m_array[$offset] = $value;
+        if(is_string($value)) {
+            $fixValue = TypeManager::strToNumeric($value);
+            if($fixValue !== false && $fixValue >= 0) {
+                return (float)$fixValue;
             }
-
-            return;
+        }
+        else if(is_int($value) || is_bool($value) || is_double($value)) {
+            $value = (float)$value;
+            if($value >= 0) {
+                return $value;
+            }
         }
         
-        $this->errorOffsetSet($offset, $original);
+        return null;
     }
-    
-    /** {@inheritdoc} */
-    static function __getEvalType(): string { return self::TNumericArray; }
-    
-    /** {@inheritdoc} */
-    static function __getItemEvalType(): string { return self::TNumeric; }
 }

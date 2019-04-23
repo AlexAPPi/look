@@ -8,7 +8,7 @@ use Look\Type\Exceptions\UnsignedDoubleException;
  * Базовый класс не отрицательного числа
  */
 class UnsignedDouble extends UnsignedNumeric
-{    
+{
     /** {@inheritdoc} */
     public function setValue($value) : void
     {

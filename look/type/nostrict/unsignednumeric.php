@@ -2,25 +2,28 @@
 
 namespace Look\Type\NoStrict;
 
+use Look\Type\TypeManager;
+use Look\Type\Interfaces\INotStrict;
 use Look\Type\UnsignedNumeric as StrictUnsignedNumeric;
-use Look\Type\Exceptions\InvalidArgumentException;
-use Look\Type\Exceptions\UnsignedNumericException;
 
 /**
  * Базовый класс не отрицательного числа с плавающей точкой
  */
-class UnsignedNumeric extends StrictUnsignedNumeric
+class UnsignedNumeric extends StrictUnsignedNumeric implements INotStrict
 {
     /** {@inheritdoc} */
     public function setValue($value) : void
     {
-        try { parent::setValue($value); }
-        catch (InvalidArgumentException $ex) {
-            throw new UnsignedNumericException('value', 0, $ex);
+        if(is_string($value)) {
+            $fixValue = TypeManager::strToNumeric($value);
+            if($fixValue !== false && $fixValue >= 0) {
+                $value = $fixValue;
+            }
+        }
+        else if(is_bool($value)) {
+            $value = (int)$value;
         }
         
-        if($this->m_value < 0) {
-            throw new UnsignedNumericException('value');
-        }
+        parent::setValue($value);
     }
 }

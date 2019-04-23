@@ -1,46 +1,32 @@
 <?php
 
-namespace Look\Type;
+namespace Look\Type\NoStrict;
 
 use Look\Type\TypeManager;
-
+use Look\Type\Interfaces\INotStrict;
+use Look\Type\UnsignedIntegerArray as StrictUnsignedIntegerArray;
 /**
  * Базовый класс массива состоящего только из положительных целых числел
  */
-class UnsignedIntegerArray extends IntegerArray
+class UnsignedIntegerArray extends StrictUnsignedIntegerArray implements INotStrict
 {    
     /** {@inheritdoc} */
-    public function offsetSet($offset, $value)
+    public static function convertOffsetValue($value)
     {
-        $original = $value;
-        
         // Преобразуем строку в значение
-        if(static::CanSetString && is_string($value)) {
-            $value = TypeManager::strToInt($value);
-        }
-        
-        // Преобразуем в целове число
-        else if(static::CanSetFloat && is_double($value)) {
-            $value = (int)$value;
-        }
-        
-        if($value !== false && is_int($value) && $value >= 0) {
-            
-            if(is_null($offset)) {
-                $this->m_array[] = $value;
-            } else {
-                $this->m_array[$offset] = $value;
+        if(is_string($value)) {
+            $fixValue = TypeManager::strToNumeric($value);
+            if($fixValue !== false && $fixValue >= 0) {
+                return (int)$fixValue;
             }
-
-            return;
         }
-
-        $this->errorOffsetSet($offset, $original);
+        else if(is_int($value) || is_bool($value) || is_double($value)) {
+            $value = (int)$value;
+            if($value >= 0) {
+                return $value;
+            }
+        }
+        
+        return null;
     }
-    
-    /** {@inheritdoc} */
-    static function __getEvalType(): string { return self::TUnsignedIntegerArray; }
-    
-    /** {@inheritdoc} */
-    static function __getItemEvalType(): string { return self::TUnsignedInteger; }
 }

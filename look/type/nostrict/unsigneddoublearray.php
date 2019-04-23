@@ -3,12 +3,13 @@
 namespace Look\Type\NoStrict;
 
 use Look\Type\TypeManager;
-use Look\Type\UnsignedDoubleArray as StrictUnsigneDoubleArray;
+use Look\Type\Interfaces\INotStrict;
+use Look\Type\UnsignedDoubleArray as StrictUnsignedDoubleArray;
 
 /**
  * Базовый класс массива состоящего только из положительных числел с плавающей точкой
  */
-class UnsignedDoubleArray extends StrictUnsigneDoubleArray
+class UnsignedDoubleArray extends StrictUnsignedDoubleArray implements INotStrict
 {
     /** {@inheritdoc} */
     public static function convertOffsetValue($value)

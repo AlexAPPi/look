@@ -3,12 +3,13 @@
 namespace Look\Type\NoStrict;
 
 use Look\Type\TypeManager;
-use Look\Type\UnsignedDouble as StrictUnsigneDouble;
+use Look\Type\Interfaces\INotStrict;
+use Look\Type\UnsignedDouble as StrictUnsignedDouble;
 
 /**
  * Базовый класс не отрицательного числа
  */
-class UnsignedDouble extends StrictUnsigneDouble
+class UnsignedDouble extends StrictUnsignedDouble implements INotStrict
 {
     /** {@inheritdoc} */
     public function setValue($value) : void
@@ -28,10 +29,4 @@ class UnsignedDouble extends StrictUnsigneDouble
         
         parent::setValue($value);
     }
-    
-    /** {@inheritdoc} */
-    public static function __getEvalType(): string { return self::TUnsignedDouble; }
-    
-    /** {@inheritdoc} */
-    public static function __getSystemEvalType() : string { return self::TDouble; }
 }

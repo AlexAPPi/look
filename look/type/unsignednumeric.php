@@ -2,13 +2,14 @@
 
 namespace Look\Type;
 
+use Look\Type\Interfaces\IUnsigned;
 use Look\Type\Exceptions\InvalidArgumentException;
 use Look\Type\Exceptions\UnsignedNumericException;
 
 /**
  * Базовый класс не отрицательного числа с плавающей точкой
  */
-class UnsignedNumeric extends Numeric
+class UnsignedNumeric extends Numeric implements IUnsigned
 {
     /** {@inheritdoc} */
     public function setValue($value) : void

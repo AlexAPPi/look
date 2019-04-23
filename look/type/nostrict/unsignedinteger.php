@@ -2,14 +2,15 @@
 
 namespace Look\Type\NoStrict;
 
-use Type
+use Look\Type\TypeManager;
+use Look\Type\Interfaces\INotStrict;
 use Look\Type\UnsignedInteger as StrictUnsignedInteger;
 
 /**
  * Базовый класс не отрицательного целого числа
  */
-class UnsignedInteger extends StrictUnsignedInteger
-{    
+class UnsignedInteger extends StrictUnsignedInteger implements INotStrict
+{
     /** {@inheritdoc} */
     public function setValue($value) : void
     {
