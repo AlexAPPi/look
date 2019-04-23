@@ -2,6 +2,7 @@
 
 namespace Look\Page;
 
+use Look\Type\HTMLWrap;
 use Look\Exceptions\SystemLogicException;
 
 /**

@@ -5,6 +5,7 @@ namespace Look\Page;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
+use Look\Type\HTMLWrap;
 
 /**
  * Класс для работы с meta данными страницы

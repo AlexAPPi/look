@@ -1,67 +1,127 @@
 <?php
 
-namespace Look\Page;
+namespace Look\XCSRF;
 
 /**
- * Обработчик запросов с использованием технологии xcsrf
- *
- * Данная технология позволяет пользователю отправлять запросы,
- * защищенные от многократной отправки
+ * Класс обработчик форм запросов
+ * защищает форму от многостраничного доступа
  * 
  * @author Alexandr Shamarin <alexsandrshamarin@yandex.ru>
  */
-class XCSRFHandler extends HTMLWrap
+class XCSRFHandler
 {
-    protected $id;
-    protected $method;
-    protected $token;
+    /** @var string Буфер обмена */
+    protected static $buffer = '';
     
     /**
-     * Создает обработчик запросов с использованием метода защиты xcsrf
+     * Возвращает буфер обмена
+     * @return string
+     */
+    public static function getBuffer() : string
+    {
+        return static::$buffer;
+    }
+    
+    /**
+     * Вытаскивает обработчик из данных сессии
+     * @param string $id -> Id обработчика
+     * @return array|null
+     */
+    public static function getFromStore(string $id) : ?array
+    {
+        $check =
+              isset($_SESSION)
+           && isset($_SESSION['xcsrf'])
+           && isset($_SESSION['xcsrf'][$id]);
+         
+        if($check) {
+            return $_SESSION['xcsrf'][$id];
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Проверяет существования обработчика для указанных данных
      * 
-     * @param string $id     -> Уникальный индификатор запроса в системе
-     * @param string $method -> Доступный тип запроса GET|POST|PUT|DELETE
-     * @param string $token  -> Уникальный ключ доступа
+     * <b>При успешной проверке происходит удаление записей из базы</b>
+     * 
+     * При следующей вызове данный обработчик будет не доступен
+     * 
+     * @param string $id     -> Id обработчика
+     * @param string $method -> Метод обработки GET|POST|PUT|DELETE
+     * @param string $token  -> Уникальный ключ обработчика
+     * @return bool
      */
-    public function __construct(string $id, string $method, string $token)
+    public static function check(string $id, string $method, string $token) : bool
     {
-        $this->id      = $id;
-        $this->method  = $method;
-        $this->token   = $token;
+        $check =
+               isset($_SESSION)
+            && isset($_SESSION['xcsrf'])
+            && isset($_SESSION['xcsrf'][$id])
+            && $_SESSION['xcsrf'][$id]['method'] == $method
+            && $_SESSION['xcsrf'][$id]['token'] == $token;
+        
+        if($check) {
+            unset($_SESSION['xcsrf'][$id]);
+        }
+        
+        return $check;
     }
     
     /**
-     * Уникальный индификатор запроса в системе
-     * @return string
+     * Регистрирует обработчик в системе
+     * @param string   $id      -> Id обработчика
+     * @param string   $method  -> Метод обработки GET|POST|PUT|DELETE
+     * @param callable $handler -> Функция обработчика
+     * @return \Look\XCSRF\XCSRFEntity
      */
-    public function getId() : string
+    public static function setHanler(string $id, string $method, callable $handler) : XCSRFEntity
     {
-        return $this->id;
+        static::execHandler($id, $handler);
+        $token = static::regInStore($id, $method);
+        return new XCSRFHandler($id, $method, $token);
     }
     
     /**
-     * Доступный тип запроса GET|POST|PUT|DELETE
-     * @return string
+     * 
+     * @param string $id        -> Уникальный идентификатор события
+     * @param callable $handler -> Обработчик события
+     * 
+     * Вывод функции сохраняется в буфер
      */
-    public function getMethod() : string
+    protected static function execHandler(string $id, callable $handler)
     {
-        return $this->method;
+        $inp = (isset($_POST) && isset($_POST['xcsrf_id'])) ? $_POST :
+               ((isset($_GET) && isset($_GET['xcsrf_id'])) ? $_GET : false);
+        
+        if(($inp !== false && $inp['xcsrf_id'] == $id)
+        && (static::check($inp['xcsrf_id'], $inp['xcsrf_method'], $inp['xcsrf_token']))) {
+            
+            // Вывод данных собираем для вывода в шаблоне
+            ob_start();
+            $res = $handler($inp);
+            if($res !== false) {
+                static::$buffer .= ob_get_contents() . $res;
+            }
+            ob_end_clean();
+        }
     }
     
     /**
-     * Уникальный ключ доступа
+     * Возвращает уникальный токен, являющийся ключом к обработчику
+     * 
+     * @param string $id     -> Id обработчика
+     * @param string $method -> Метод обработки GET|POST|PUT|DELETE
      * @return string
      */
-    public function getToken() : string
+    protected static function regInStore(string $id, string $method) : string
     {
-        return $this->token;
-    }
-    
-    /** {@inheritdoc} */
-    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
-    {
-        return $mainTabStr . '<input type="text" name="xcsrf_id" value="'.$this->getId().'" hidden>' . PHP_EOL .
-               $mainTabStr . '<input type="text" name="xcsrf_method" value="'.$this->getMethod().'" hidden>' . PHP_EOL .
-               $mainTabStr . '<input type="text" name="xcsrf_token" value="'.$this->getToken().'" hidden>' . PHP_EOL;
+        if(empty(session_id()))        { session_start(); }
+        if(!isset($_SESSION['xcsrf'])) { $_SESSION['xcsrf'] = []; }
+        
+        $token = md5(uniqid(rand(), true));
+        $_SESSION['xcsrf'][$id] = ['method' => $method, 'token' => $token];
+        return $token;
     }
 }

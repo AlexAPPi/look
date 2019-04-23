@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Page\Helper;
+namespace Look\Page\Util;
 
 use Look\Exceptions\SystemException;
 

@@ -3,8 +3,9 @@
 namespace Look\Page;
 
 use Throwable;
+use Look\Type\HTMLWrap;
 use Look\Url\Builder as Url;
-use Look\Page\Helper\CssMinimizer;
+use Look\Page\Util\CssMinimizer;
 
 /**
  * Класс шапки страницы

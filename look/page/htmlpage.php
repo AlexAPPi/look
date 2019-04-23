@@ -2,6 +2,8 @@
 
 namespace Look\Page;
 
+use Look\Type\HTMLWrap;
+
 /**
  * Базовый класс страницы
  */

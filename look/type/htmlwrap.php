@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Page;
+namespace Look\Type;
 
 /**
  * Представляет собой обертку преобразования в HTML документ

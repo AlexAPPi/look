@@ -2,6 +2,11 @@
 
 namespace Look\Page;
 
+use Look\Type\HTMLWrap;
+
+/**
+ * Объект навигации страницы
+ */
 class Navigation extends HTMLWrap
 {    
     /**

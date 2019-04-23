@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Page;
+namespace Look\Type\Interfaces;
 
 /**
  * Конвертирует объект в HTML файл
