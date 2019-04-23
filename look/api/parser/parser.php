@@ -6,15 +6,16 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
 
-use Look\API\Type\TypeManager;
-use Look\API\Type\Interfaces\IType;
-use Look\API\Type\Interfaces\IScalar;
-use Look\API\Type\Interfaces\IScalarArray;
+use Look\Type\Enum;
+
+use Look\API\Type\Token\IToken;
+
+use Look\Type\TypeManager;
+use Look\Type\Interfaces\IType;
+use Look\Type\Interfaces\IScalar;
+use Look\Type\Interfaces\IScalarArray;
 
 use Look\API\Controller as APIController;
-
-use Look\API\Type\Enum;
-use Look\API\Type\Token\IToken;
 
 use Look\API\Parser\Exceptions\ParserException;
 
@@ -123,9 +124,9 @@ class Parser
         // Конструктор токена не может быть изменен
         // Особенности вызова смотрите в \Look\API\Caller
         if(is_subclass_of($class, IToken::class)) {
-            return IToken::class;
+            return $class;
         }
-                
+        
         $reflectionClass = new ReflectionClass($class);
         
         if(!$reflectionClass

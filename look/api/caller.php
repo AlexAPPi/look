@@ -7,17 +7,17 @@ use ReflectionMethod;
 use ReflectionFunction;
 use ReflectionParameter;
 
-use Look\API\Type\TypeManager;
-use Look\API\Type\Interfaces\IType;
-use Look\API\Type\Interfaces\IScalar;
-use Look\API\Type\Interfaces\IScalarArray;
+use Look\Type\TypeManager;
+use Look\Type\Interfaces\IType;
+use Look\Type\Interfaces\IScalar;
+use Look\Type\Interfaces\IScalarArray;
 
-use Look\API\Type\Exceptions\ArrayException;
-use Look\API\Type\Exceptions\StringException;
-use Look\API\Type\Exceptions\BooleanException;
-use Look\API\Type\Exceptions\UndefinedException;
-use Look\API\Type\Exceptions\BooleanArrayException;
-use Look\API\Type\Exceptions\AutoArgumentException;
+use Look\Type\Exceptions\ArrayException;
+use Look\Type\Exceptions\StringException;
+use Look\Type\Exceptions\BooleanException;
+use Look\Type\Exceptions\UndefinedException;
+use Look\Type\Exceptions\BooleanArrayException;
+use Look\Type\Exceptions\AutoArgumentException;
 
 use Look\Exceptions\SystemLogicException;
 
@@ -32,8 +32,11 @@ use Look\API\Exceptions\APICallerException;
 use Look\API\Exceptions\ObjectStructException;
 use Look\API\Type\Exceptions\InvalidArgumentException;
 
-use Look\API\Type\Enum;
-use Look\API\Type\Exceptions\EnumException;
+use Look\Type\Enum;
+use Look\Type\Exceptions\EnumException;
+
+use Look\Type\Traits\Singleton;
+use Look\Type\Traits\Settingable;
 
 /**
  * Реализует интерфейс API обращение к функциям с помощью данных
@@ -41,8 +44,8 @@ use Look\API\Type\Exceptions\EnumException;
  */
 class Caller
 {
-    use \Look\Type\Traits\Singleton;
-    use \Look\Type\Traits\Settingable;
+    use Singleton;
+    use Settingable;
     
     /** Метод который будет вызываться по умолчанию при создании экземпляра класса */
     const ClassConstructorMethod = '__construct'; 

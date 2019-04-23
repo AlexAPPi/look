@@ -5,6 +5,9 @@ namespace Look\API;
 use Throwable;
 use Exception;
 
+use Look\API\Caller;
+use Look\Url\Builder as Url;
+
 use Look\Exceptions\SystemException;
 use Look\Exceptions\SystemLogicException;
 use Look\Exceptions\InvalidArgumentException;
@@ -12,8 +15,8 @@ use Look\Exceptions\InvalidArgumentException;
 use Look\API\Exceptions\APIException;
 use Look\API\Type\Token\Exceptions\TokenException;
 
-use Look\API\Caller;
-use Look\Url\Builder as Url;
+use Look\API\Type\ApiResult;
+use Look\API\Type\Interfaces\APIResultable;
 
 use Look\Type\Traits\Singleton;
 
@@ -53,7 +56,12 @@ final class Controller
      * @var array список наименований функций, которые нельзя инспользовать
      * init - функция инициализирующая работу API класса
      */
-    private static $protectedFuncAPI = ['init', 'destroy', 'call', '__destroy', '__sleep', '__wakeup', '__get', '__set', '__toString'];
+    private static $protectedFuncAPI = [
+        '__constructor',
+        'init', 'destroy', 'call', '__call',
+        '__callStatic', '__destroy', '__sleep',
+        '__wakeup', '__get', '__set', '__toString'
+    ];
     
     /**
      * @var array список наименований классов, которые нельзя инспользовать
@@ -201,7 +209,7 @@ final class Controller
      * @return boolean
      */
     public static function apiClassExists(string $name, string &$path = null) : bool
-    {  
+    {
         $path = null;
         
         if(static::validName($name)) {

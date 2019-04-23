@@ -7,7 +7,4 @@ use Look\Type\Exceptions\InvalidArgumentException as LookTypeInvalidArgumentExce
 /**
  * Исключение связанное с передачей параметра иного типа
  */
-class InvalidArgumentException extends LookTypeInvalidArgumentException
-{
-    const argumentErrMessage = 'invalid';
-}
+class InvalidArgumentException extends LookTypeInvalidArgumentException {}

@@ -2,7 +2,8 @@
 
 namespace Look\API\Type\Token\Container;
 
-use Look\Settings;
+use Look\Type\Traits\Singleton;
+use Look\Type\Traits\Settingable;
 use Look\Exceptions\SystemException;
 
 /**
@@ -10,11 +11,8 @@ use Look\Exceptions\SystemException;
  */
 class Coder
 {
-    /**
-     * Единственный экземпляр класса
-     * @var Coder 
-     */
-    private static $instance = null;
+    use Singleton;
+    use Settingable;
     
     private function __clone() {}
     private function __wakeup() {}
@@ -28,27 +26,14 @@ class Coder
     
     private function __construct()
     {
-        $this->packPass = Settings::get('coder', 'code', null);
-        $this->packSalt = Settings::get('coder', 'salt', null);
+        $this->packPass = $this->getSetting('code', null);
+        $this->packSalt = $this->getSetting('salt', null);
         
         if($this->packPass == null || strlen($this->packPass) < 10 || $this->packSalt = null || strlen($this->packSalt) < 10) {
             throw new SystemException("Для шифрования нельзя использовать пустой пароль или пароль длинной меньше 10 символов");
         }
     }
-    
-    /**
-     * Инициализирует единственный объект данного класса.
-     * @return $this
-     */
-    public static function getInstance()
-    {
-        if (self::$instance == null) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-    
+        
     /**
      * Шифрование
      * @param string $string строка

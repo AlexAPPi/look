@@ -3,7 +3,7 @@
 namespace Look\API\Exceptions;
 
 use Throwable;
-use Look\API\Type\Exceptions\InvalidArgumentException;
+use Look\Exceptions\InvalidArgumentException;
 
 /**
  * Исключение связанное с нарушением структуры объекта

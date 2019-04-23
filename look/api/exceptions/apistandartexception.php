@@ -2,9 +2,9 @@
 
 namespace Look\API\Exceptions;
 
-use Look\Exceptions\SystemLogicException;
+use Look\Exceptions\CodeStandartException;
 
 /**
  * Исключение связанное с ошибкой стандарта модели API обработчика
  */
-class APIStandartException extends SystemLogicException {}
+class APIStandartException extends CodeStandartException {}
