@@ -236,7 +236,7 @@ class HtmlPage extends HTMLWrap
     }
     
     /** {@inheritdoc} */
-    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
+    protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
     {
         $html  = "$mainTabStr<html>\n";
         $html .= $this->head->__toHTML($offset + 1, $tabSize) . "\n";

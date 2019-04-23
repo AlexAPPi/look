@@ -23,7 +23,7 @@ trait BreadCrumbs
      * @var boolean Список хлебных крошек 
      */
     protected $breadCrumbs    = [];
-        
+    
     /**
      * Добавляет секцию
      * 

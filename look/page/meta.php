@@ -154,7 +154,7 @@ class Meta extends HTMLWrap implements ArrayAccess, IteratorAggregate
     }
     
     /** {@inheritdoc} */
-    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
+    protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
     {
         $html = '';
         foreach($this->meta as $name => $content) {

@@ -10,7 +10,7 @@ namespace Look\Page;
  * 
  * @author Alexandr Shamarin <alexsandrshamarin@yandex.ru>
  */
-class XCSRFHandler
+class XCSRFHandler extends HTMLWrap
 {
     protected $id;
     protected $method;
@@ -57,14 +57,11 @@ class XCSRFHandler
         return $this->token;
     }
     
-    /**
-     * Преобразует в строку
-     * @return string
-     */
-    public function __toString() : string
+    /** {@inheritdoc} */
+    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
     {
-        return '<input type="text" name="xcsrf_id" value="'.$this->getId().'" hidden>' . PHP_EOL .
-               '<input type="text" name="xcsrf_method" value="'.$this->getMethod().'" hidden>' . PHP_EOL .
-               '<input type="text" name="xcsrf_token" value="'.$this->getToken().'" hidden>' . PHP_EOL;
+        return $mainTabStr . '<input type="text" name="xcsrf_id" value="'.$this->getId().'" hidden>' . PHP_EOL .
+               $mainTabStr . '<input type="text" name="xcsrf_method" value="'.$this->getMethod().'" hidden>' . PHP_EOL .
+               $mainTabStr . '<input type="text" name="xcsrf_token" value="'.$this->getToken().'" hidden>' . PHP_EOL;
     }
 }

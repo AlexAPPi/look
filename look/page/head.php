@@ -138,7 +138,7 @@ class Head extends HTMLWrap
     }
     
     /** {@inheritdoc} */
-    public function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
+    protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
     {
         $result = "$mainTabStr<head>\n";
         

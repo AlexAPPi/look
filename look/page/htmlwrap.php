@@ -23,7 +23,7 @@ abstract class HTMLWrap implements IHTML
      * @param string $mainTabStr -> Отступ от начала строки
      * @param string $tabStr     -> Единый отступ
      */
-    public abstract function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string;
+    protected abstract function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string;
     
     /** {@inheritdoc} */
     public function __toHTML(int $offset = 0, int $tabSize = 4) : string
