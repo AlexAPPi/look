@@ -6,7 +6,7 @@ use JsonSerializable;
 
 use Look\API\Caller;
 
-use Look\API\APIResultable;
+use Look\API\Type\Interfaces\APIResultable;
 
 use Look\API\Type\Token\IToken;
 use Look\API\Type\Token\Exceptions\TokenException;

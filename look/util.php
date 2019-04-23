@@ -2,7 +2,7 @@
 
 /**
  * Возвращает IP клиента
- * @param string $method -> Метод обнаружения
+ * @param string $method -> Метод обнаружения (getenv, server)
  * @return string
  */
 function get_client_ip(string $method = 'getenv') : ?string

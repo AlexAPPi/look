@@ -2,12 +2,12 @@
 
 namespace Look\API\Type\Exceptions;
 
-use Look\Exceptions\InvalidArgumentException as LookInvalidArgumentException;
+use Look\Type\Exceptions\InvalidArgumentException as LookTypeInvalidArgumentException;
 
 /**
  * Исключение связанное с передачей параметра иного типа
  */
-class InvalidArgumentException extends LookInvalidArgumentException
+class InvalidArgumentException extends LookTypeInvalidArgumentException
 {
     const argumentErrMessage = 'invalid';
 }

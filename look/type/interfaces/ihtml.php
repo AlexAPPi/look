@@ -13,5 +13,5 @@ interface IHTML
      * @param int $tabSize -> Количество пробелов в отступе
      * @return string
      */
-    public function __toHTML(int $offset = 0, int $tabSize = 4);
+    function __toHTML(int $offset = 0, int $tabSize = 4);
 }

@@ -2,9 +2,9 @@
 
 namespace Look\API\Type\Exceptions;
 
-use Look\Exceptions\SystemLogicException;
+use Look\Type\Exceptions\ArrayErrorException;
 
 /**
  * Базовое исключение связанное с ошибкой в объекте IArray
  */
-class ArrayErrorException extends SystemLogicException {}
+class ArrayErrorException extends ArrayErrorException {}
