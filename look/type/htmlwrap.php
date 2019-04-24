@@ -2,6 +2,8 @@
 
 namespace Look\Type;
 
+use Look\Type\Interfaces\IHTML;
+
 /**
  * Представляет собой обертку преобразования в HTML документ
  */

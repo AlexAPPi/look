@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Page;
+namespace Look\Html;
 
 use ArrayAccess;
 use ArrayIterator;
@@ -121,7 +121,7 @@ class Meta extends HTMLWrap implements ArrayAccess, IteratorAggregate
      * @param string $content -> Значение для meta тега
      * @return string
      */
-    public function buildMetaTag($name, $content = null)
+    public function buildMetaTag(string $name, $content = null)
     {
         $content = is_null($content) ? $this->meta[$name] : $content;
         

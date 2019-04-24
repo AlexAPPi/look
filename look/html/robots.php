@@ -1,6 +1,6 @@
 <?php
 
-namespace Look\Page;
+namespace Look\Html;
 
 use Look\Type\HTMLWrap;
 use Look\Exceptions\SystemLogicException;

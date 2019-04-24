@@ -2,8 +2,8 @@
 
 namespace Look\API\Parser\TypeScript;
 
+use Look\Type\Interfaces\IType;
 use Look\API\Parser\Struct\Value;
-use Look\API\Type\Interfaces\IType;
 
 class TSValue
 {

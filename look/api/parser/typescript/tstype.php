@@ -2,8 +2,8 @@
 
 namespace Look\API\Parser\TypeScript;
 
-use Look\API\Type\TypeManager;
-use Look\API\Type\Interfaces\IType;
+use Look\Type\TypeManager;
+use Look\Type\Interfaces\IType;
 
 use Look\API\Parser\Struct\Type;
 use Look\API\Parser\TypeScript\TSExporter;

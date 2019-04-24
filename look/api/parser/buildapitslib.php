@@ -3,7 +3,8 @@
 namespace Look\API\Parser;
 
 /** use File System Lib */
-use Look\API\Parser\TypeScript\TSNamespaceFS as TSNamespace;
+use Look\API\Parser\TypeScript\TSNamespace as TSNamespace;
+use Look\API\Parser\TypeScript\TSNamespaceFS as TSNamespaceFs;
 
 use Look\API\Parser\Parser;
 use Look\API\Parser\TypeScript\TSEnum;
@@ -42,7 +43,7 @@ class BuildAPITSLib
     /** @var TSNamespace[] */
     protected static $apiNamespaces = [];
     
-    public static function extractTSEnum(ExtractableEnumStruct $class) : void
+    protected static function extractTSEnum(ExtractableEnumStruct $class) : void
     {
         if(!isset(static::$namespaces[$class->namespace])) {
             static::$namespaces[$class->namespace] = new TSNamespace($class->namespace);
@@ -61,7 +62,7 @@ class BuildAPITSLib
         static::$namespaces[$class->namespace]->addEnum($tsEnum);
     }
     
-    public static function extractTSInterface(ArgumentClassStruct $class) : void
+    protected static function extractTSInterface(ArgumentClassStruct $class) : void
     {
         if(!isset(static::$namespaces[$class->namespace])) {
             static::$namespaces[$class->namespace] = new TSNamespace($class->namespace);
@@ -103,7 +104,7 @@ class BuildAPITSLib
         static::$namespaces[$class->namespace]->addInterface($tsInterface);
     }
     
-    public static function extractAPIMethods(array $methods) : ?array
+    protected static function extractAPIMethods(array $methods) : ?array
     {
         $result = [];
         foreach($methods as $method) {
@@ -190,7 +191,7 @@ class BuildAPITSLib
         
         $namespaces = array_merge(static::$namespaces, static::$apiNamespaces);
         foreach($namespaces as $namespace) {
-            $namespace->toTS();
+            echo $namespace->toTS();
         }
         
         //var_dump($struct);

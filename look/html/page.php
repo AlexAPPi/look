@@ -1,22 +1,138 @@
 <?php
 
-namespace Look\Page;
+namespace Look\Html;
 
 use Look\Type\HTMLWrap;
 
 /**
  * Базовый класс страницы
  */
-class HtmlPage extends HTMLWrap
+class Page extends HTMLWrap
 {
     /** @var \Look\Page\Head */
-    public $head;
-    public $controller;
-    public $view;
+    protected $head;
     
+    protected $controller;
+    protected $view;
+    
+    /**
+     * Создает новую Html страницу
+     */
     public function __construct()
     {
         $this->head = new Head();
+    }
+    
+    /**
+     * Возвращает объект конструктора "головы" страницы
+     * @return \Look\Page\Head
+     */
+    public function &getHead() : Head
+    {
+        return $this->head;
+    }
+    
+    /**
+     * Возвращает объект конструктора страницы
+     */
+    public function &getController()
+    {
+        return $this->controller;
+    }
+    
+    /**
+     * Возвращает объект шаблона страницы
+     */
+    public function &getView()
+    {
+        return $this->view;
+    }
+    
+    /**
+     * Возвращает кодировку страницы
+     * @return string
+     */
+    public function getEncoding() : string
+    {
+        return $this->head->getEncoding();
+    }
+    
+    /**
+     * Устанавливает кодировку страницы
+     * @param string $encoding -> Кодировка в соответствии стандарта
+     * @return void
+     */
+    public function setEncoding(string $encoding) : void
+    {
+        $this->head->setEncoding($encoding);
+    }
+    
+    /**
+     * Устанавливает заголовок странице
+     * @param string $title заголовок
+     * @return void
+     */
+    public function setTitle(string $title) : void
+    {
+        $this->head->setTitle($title);
+    }
+    
+    /**
+     * Возвращает заголовок или тег <title>{VALUE}</title>
+     * @return string
+     */
+    public function getTitle(bool $tag = false) : ?string
+    {
+        return $this->head->getTitle($tag);
+    }
+    
+    /**
+     * Возвращает фразу или тег <meta name="description" content="{VALUE}">
+     * @return string|null
+     */
+    public static function getDescription(bool $tag = false) : ?string
+    {
+        return $this->head->getDescription($tag);
+    }
+    
+    /**
+     * Устанавливает описание для страницы
+     * @param string $description описание
+     * @return void
+     */
+    public function setDescription(string $description) : void
+    {
+        $this->head->setDescription($description);
+    }
+    
+    /**
+     * Вызвращает фразу или тег <meta name="keywords" content="{VALUE}">
+     * @return string|null
+     */
+    public static function getKeywords(bool $tag = false) : ?string
+    {
+        return $this->head->getKeywords($tag);
+    }
+    
+    /**
+     * Устанавливает ключевые слова 
+     * @param array|string $keywords список ключевых слов
+     * @return void
+     */
+    public function setKeywords($keywords) : void
+    {
+        $this->head->setKeywords($keywords);
+    }
+    
+    /**
+     * Добавляет ключевые слова
+     * 
+     * @param array|string $keywords список ключевых слов
+     * @throws \InvalidArgumentException
+     */
+    public function addKeywords($keywords) : void
+    {
+        $this->head->addKeywords($keywords);
     }
     
     /**
@@ -27,7 +143,7 @@ class HtmlPage extends HTMLWrap
      */
     public function getMeta(string $name) : ?string
     {
-        return $this->head->meta->get($name);
+        return $this->head->meta()->get($name);
     }
     
     /**
@@ -39,7 +155,7 @@ class HtmlPage extends HTMLWrap
      */
     public function setMeta(string $name, string $content) : void
     {
-        $this->head->meta->set($name, $content);
+        $this->head->meta()->set($name, $content);
     }
     
     /**
@@ -50,7 +166,7 @@ class HtmlPage extends HTMLWrap
      */
     public function hasMeta(string $name) : bool
     {
-        return $this->head->meta->has($name);
+        return $this->head->meta()->has($name);
     }
     
     /**
@@ -60,7 +176,7 @@ class HtmlPage extends HTMLWrap
      */
     public function getCanonical(bool $tag = false) : ?string
     {
-        return $this->head->navigation->getCanonical($tag);
+        return $this->head->navigation()->getCanonical($tag);
     }    
 
     /**
@@ -70,7 +186,7 @@ class HtmlPage extends HTMLWrap
      */
     public function setCanonical(string $url) : void
     {
-        $this->head->navigation->setCanonical($url);
+        $this->head->navigation()->setCanonical($url);
     }
     
     /**
@@ -80,7 +196,7 @@ class HtmlPage extends HTMLWrap
      */
     public function hasCanonical() : bool
     {
-        return $this->head->navigation->hasCanonical();
+        return $this->head->navigation()->hasCanonical();
     }
 
     /**
@@ -90,7 +206,7 @@ class HtmlPage extends HTMLWrap
      */
     public function getPrevPagination(bool $tag = false) : ?string
     {
-        return $this->head->navigation->getPrevPagination($tag);
+        return $this->head->navigation()->getPrevPagination($tag);
     }
     
     /**
@@ -100,7 +216,7 @@ class HtmlPage extends HTMLWrap
      */
     public function setPrevPagination(string $url) : void
     {
-        $this->head->navigation->setPrevPagination($url);
+        $this->head->navigation()->setPrevPagination($url);
     }
     
     /**
@@ -109,7 +225,7 @@ class HtmlPage extends HTMLWrap
      */
     public function hasPrevPagination() : bool
     {
-        return $this->head->navigation->hasPrevPagination();
+        return $this->head->navigation()->hasPrevPagination();
     }
     
     /**
@@ -120,7 +236,7 @@ class HtmlPage extends HTMLWrap
      */
     public function getNextPagination(bool $tag = false) : ?string
     {
-        return $this->head->navigation->getNextPagination($tag);
+        return $this->head->navigation()->getNextPagination($tag);
     }
     
     /**
@@ -131,7 +247,7 @@ class HtmlPage extends HTMLWrap
      */
     public function setNextPagination(string $url) : void
     {
-        $this->head->navigation->setNextPagination($url);
+        $this->head->navigation()->setNextPagination($url);
     }
     
     /**
@@ -140,7 +256,7 @@ class HtmlPage extends HTMLWrap
      */
     public function hasNextPagination() : bool
     {
-        return $this->head->navigation->hasNextPagination();
+        return $this->head->navigation()->hasNextPagination();
     }
     
     /**
@@ -149,7 +265,7 @@ class HtmlPage extends HTMLWrap
      */
     public function addRobot(string $name) : void
     {
-        $this->head->robots->add($name);
+        $this->head->robots()->add($name);
     }
     
     /**
@@ -160,7 +276,7 @@ class HtmlPage extends HTMLWrap
      */
     public function setRobotValue(string $name, string $index, bool $flag) : void
     {
-        $this->head->robots->set($name, $index, $flag);
+        $this->head->robots()->set($name, $index, $flag);
     }
     
     /**
@@ -171,7 +287,7 @@ class HtmlPage extends HTMLWrap
      */
     public function getRobotValue(string $name, string $index) : ?bool
     {
-        return $this->head->robots->get($name, $index);
+        return $this->head->robots()->get($name, $index);
     }
     
     /**
@@ -182,7 +298,7 @@ class HtmlPage extends HTMLWrap
      */
     public function robotNoArchive(bool $flag = true, $name = 'robots') : void
     {
-        $this->head->robots->noArchive($flag, $name);
+        $this->head->robots()->noArchive($flag, $name);
     }
     
     /**
@@ -192,7 +308,7 @@ class HtmlPage extends HTMLWrap
      */
     public function robotNoArchiveValue($name = 'robots') : ?bool
     {
-        return $this->head->robots->noArchiveValue($name);
+        return $this->head->robots()->noArchiveValue($name);
     }
     
     /**
@@ -203,7 +319,7 @@ class HtmlPage extends HTMLWrap
      */
     public function accessIndex($flag = true, $name = 'robots') : void
     {
-        $this->head->robots->accessIndex($flag, $name);
+        $this->head->robots()->accessIndex($flag, $name);
     }
     
     /**
@@ -213,7 +329,7 @@ class HtmlPage extends HTMLWrap
      */
     public function robotAccessIndexValue($name = 'robots') : ?bool
     {
-        return $this->head->robots->accessIndexValue($name);
+        return $this->head->robots()->accessIndexValue($name);
     }
     
     /**
@@ -224,7 +340,7 @@ class HtmlPage extends HTMLWrap
      */
     public function robotAccessFollow($flag = true, $name = 'robots') : void
     {
-        $this->head->robots->accessFollow($flag, $name);
+        $this->head->robots()->accessFollow($flag, $name);
     }
     
     /**
@@ -234,15 +350,22 @@ class HtmlPage extends HTMLWrap
      */
     public function robotAccessFollowValue($name = 'robots') : ?bool
     {
-        return $this->head->robots->accessFollowValue($name);
+        return $this->head->robots()->accessFollowValue($name);
     }
     
     /** {@inheritdoc} */
     protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
     {
-        $html  = "$mainTabStr<html>\n";
-        $html .= $this->head->__toHTML($offset + 1, $tabSize) . "\n";
-        $html .= "$mainTabStr</html>";
+        $html = "$mainTabStr<!DOCTYPE HTML>\n"
+              . "$mainTabStr<html>\n"
+              . $this->head->__toHTML($offset + 1, $tabSize) . "\n"
+              . "$mainTabStr</html>";
+        
+        // convert utf-8 to page encoding
+        $encoding = $this->getEncoding();
+        if($encoding != Encoding::UTF8) {
+            return iconv(Encoding::UTF8, $encoding, $html);
+        }
         
         return $html;
     }

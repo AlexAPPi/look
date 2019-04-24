@@ -6,7 +6,7 @@ use Look\API\Parser\DocBlock;
 use Look\API\Parser\TypeScript\TSArgument;
 use Look\API\Parser\DocBlock\ParamDocBlock;
 
-use Look\API\Type\Arrays\ObjectArray;
+use Look\Type\ObjectArray;
 
 /**
  * Список аргументов

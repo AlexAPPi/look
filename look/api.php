@@ -130,7 +130,7 @@ function api_error_ans(Throwable $ex) : void
     $time    = api_err_log($ex);
     $code    = -5121994;
     $mess    = 'fatal server error';
-
+    
     try
     {
         $matches = [];
