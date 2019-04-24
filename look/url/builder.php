@@ -120,6 +120,41 @@ class Builder
     }
     
     /**
+     * @see __sleep
+     * @return array
+     */
+    public function __sleep() : array
+    {
+        return [
+            'scheme',
+            'host',
+            'baseDomainOffset',
+            'domainList',
+            'port',
+            'user',
+            'pass',
+            'path',
+            'query',
+            'fragment',
+            'sections',
+            'params',
+            'storage',
+            'restoreOutput',
+            'toRelative',
+            'isRelative'
+        ];
+    }
+    
+    /**
+     * @see __wakeup
+     * @return void
+     */
+    public function __wakeup() : void
+    {
+        
+    }
+    
+    /**
      * Конструктору был передан относительный путь
      * @return bool
      */

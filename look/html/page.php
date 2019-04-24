@@ -317,7 +317,7 @@ class Page extends HTMLWrap
      * @param string $name -> Название робота
      * @return void
      */
-    public function accessIndex($flag = true, $name = 'robots') : void
+    public function robotAccessIndex($flag = true, $name = 'robots') : void
     {
         $this->head->robots()->accessIndex($flag, $name);
     }

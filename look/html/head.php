@@ -166,7 +166,7 @@ class Head extends HTMLWrap
     {
         // unset
         if($this->meta->has('keywords')) {
-            $this->meta->set('keywords', '');
+            $this->meta->unset('keywords');
         }
         
         $this->addKeywords($keywords);
@@ -198,6 +198,40 @@ class Head extends HTMLWrap
         $this->meta->set('keywords', implode(',', array_unique(
             array_merge($value, $keywords)
         )));
+    }
+    
+    /**
+     * Удаляет полностью или частично ключевые слова
+     * @param null|array $keywords -> Ключевые слова, которые нужно удалить
+     * @param 
+     * @return void
+     */
+    public function unsetKeywords($keywords = null) : void
+    {
+        if(!$this->meta->has('keywords')) {
+            return;
+        }
+        
+        if($keywords === null) {
+            $this->meta->unset('keywords');
+            return;
+        }
+        
+        $originalKeywords = explode(',', $this->meta->get('keywords'));
+        
+        $result = [];
+        foreach($keywords as $curWord) {
+            $del = false;
+            foreach($originalKeywords as $unWord) {
+                if($unWord == $curWord) {
+                    $del = true;
+                }
+            }
+            if(!$del) {
+                $result[] = $curWord;
+            }
+        }
+        $this->addKeywords($result);
     }
     
     /**
