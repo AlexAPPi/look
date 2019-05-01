@@ -69,6 +69,8 @@ final class AutoArgumentException
             case IType::TDouble:     return new DoubleException($name, $code, $previous);
             case IType::TString:     return new StringException($name, $code, $previous);
             case IType::TBool:       return new BooleanException($name, $code, $previous);
+            case IType::TChar:       return new CharException($name, $code, $previous);
+            case IType::TVarChar:    return new VarCharException($name, $code, $previous);
             case IType::TNumeric:    return new NumericException($name, $code, $previous);
             case IType::TArray:      return new ArrayException($name, $code, $previous);
             case IType::TMultiArray: return new ArrayException($name, $code, $previous);
@@ -94,7 +96,7 @@ final class AutoArgumentException
             
             default: break;
         }
-                
+        
         return new MyInvalidException($name, 'not ' . $type, $code, $previous);
     }
 }

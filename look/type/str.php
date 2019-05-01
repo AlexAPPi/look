@@ -32,7 +32,7 @@ class Str implements IScalar
      */
     public function __construct(string $str)
     {
-        $this->value = $str;
+        $this->setValue($str);
     }
     
     /**

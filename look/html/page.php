@@ -4,13 +4,23 @@ namespace Look\Html;
 
 use Look\Type\HTMLWrap;
 
+use Look\Html\Head;
+use Look\Html\Body;
+
+use Look\Html\Traits\Attributable;
+
 /**
- * Базовый класс страницы
+ * Базовый класс HTML5 страницы
  */
 class Page extends HTMLWrap
 {
-    /** @var \Look\Page\Head */
+    use Attributable;
+    
+    /** @var Head */
     protected $head;
+    
+    /** @var Body */
+    protected $body;
     
     protected $controller;
     protected $view;
@@ -20,22 +30,32 @@ class Page extends HTMLWrap
      */
     public function __construct()
     {
-        $this->head = new Head();
+        $this->head = new Head($this);
+        $this->body = new Body($this);
     }
     
     /**
      * Возвращает объект конструктора "головы" страницы
-     * @return \Look\Page\Head
+     * @return Head
      */
-    public function &getHead() : Head
+    public function &head() : Head
     {
         return $this->head;
     }
     
     /**
+     * Возвращает объект конструктора "тела" страницы
+     * @return Body
+     */
+    public function &body() : Body
+    {
+        return $this->body;
+    }
+    
+    /**
      * Возвращает объект конструктора страницы
      */
-    public function &getController()
+    public function &controller()
     {
         return $this->controller;
     }
@@ -43,7 +63,7 @@ class Page extends HTMLWrap
     /**
      * Возвращает объект шаблона страницы
      */
-    public function &getView()
+    public function &view()
     {
         return $this->view;
     }
@@ -65,6 +85,16 @@ class Page extends HTMLWrap
     public function setEncoding(string $encoding) : void
     {
         $this->head->setEncoding($encoding);
+    }
+    
+    /**
+     * Устанавливает язык страницы
+     * @param string $lang -> Язык страницы
+     * @return void
+     */
+    public function setLang(string $lang) : void
+    {
+        $this->setAttribute('lang', $lang);
     }
     
     /**
@@ -356,9 +386,11 @@ class Page extends HTMLWrap
     /** {@inheritdoc} */
     protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr) : ?string
     {
+        $attrs = $this->attributesToHTML();
         $html = "$mainTabStr<!DOCTYPE HTML>\n"
-              . "$mainTabStr<html>\n"
+              . "$mainTabStr<html{$attrs}>\n"
               . $this->head->__toHTML($offset + 1, $tabSize) . "\n"
+              . $this->body->__toHTML($offset + 1, $tabSize) . "\n"
               . "$mainTabStr</html>";
         
         // convert utf-8 to page encoding

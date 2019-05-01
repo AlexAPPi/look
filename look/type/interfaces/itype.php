@@ -40,6 +40,12 @@ interface IType
     /** Тип unsigned integer|double */
     const TUnsignedNumeric = 'unsigned ' . self::TNumeric;
 
+    /** Тип char */
+    const TChar = 'char';
+    
+    /** Тип varchar */
+    const TVarChar = 'varchar';
+    
     /** Тип string */
     const TString = 'string';
     
@@ -60,6 +66,9 @@ interface IType
     
     /** Массив string */
     const TStringArray = self::TString . ' ' . self::TArray;
+    
+    /** Массив char */
+    const TCharArray = self::TChar . ' ' . self::TArray; 
     
     /** Массив bool (только из true|false) */
     const TBoolArray = self::TBool . ' ' . self::TArray;

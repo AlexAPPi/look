@@ -8,11 +8,19 @@ use Look\Type\HTMLWrap;
 use Look\Page\Util\CssMinimizer;
 use Look\Exceptions\InvalidArgumentException;
 
+use Look\Html\Page;
+use Look\Html\Meta;
+use Look\Html\Navigation;
+
+use Look\Html\Traits\Bufferable;
+
 /**
  * Класс шапки страницы
  */
 class Head extends HTMLWrap
 {
+    use Bufferable;
+    
     /** @var string Назание параметра который отвечает за антикеш в браузере */
     const unCacheParam = 'v';
     
@@ -22,26 +30,40 @@ class Head extends HTMLWrap
     /** @var string Заголовок страницы */
     protected $title;
     
-    /** @var \Look\Page\Robots */
+    /** @var Page */
+    protected $page;
+
+    /** @var Robots */
     protected $robots;
     
-    /** @var \Look\Page\Meta -> мета данные */
+    /** @var Meta мета данные */
     protected $meta;
     
-    /** @var \Look\Page\Navigation -> Навигация страницы */
+    /** @var Navigation Навигация страницы */
     protected $navigation;
-    
+        
     /** @var array */
     protected $css = [];
     
     /**
      * Класс шапки страницы
+     * @param Page $page -> Объект страницы
      */
-    public function __construct()
+    public function __construct(Page &$page)
     {
+        $this->page       = &$page;
         $this->meta       = new Meta();
         $this->robots     = new Robots();
         $this->navigation = new Navigation();
+    }
+    
+    /**
+     * Возврщает объект страницы
+     * @return Page
+     */
+    public function &page() : Page
+    {
+        return $this->page;
     }
     
     /**
@@ -342,7 +364,7 @@ class Head extends HTMLWrap
     
     /** {@inheritdoc} */
     protected function buildHTML(int $offset, int $tabSize, string $mainTabStr, string $tabStr): ?string
-    {
+    {        
         return "$mainTabStr<head>\n"
              . "{$mainTabStr}{$tabStr}<meta http-equiv=\"Content-type\" content=\"text/html; charset=$this->encoding\"/>\n"
              . "{$mainTabStr}{$tabStr}{$this->getTitle(true)}\n"
